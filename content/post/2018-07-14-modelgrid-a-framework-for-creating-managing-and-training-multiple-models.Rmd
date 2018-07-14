@@ -358,3 +358,8 @@ mg <-
 
 names(mg$models)
 ```
+
+That's it! You should now be all set to grind models with the `modelgrid`!
+
+Peace out
+/smaakagen
