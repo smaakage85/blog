@@ -6,18 +6,18 @@
     <description>Recent content on A Hugo website</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 14 Jun 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 14 Jul 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>tester</title>
-      <link>/2018/06/14/tester/</link>
-      <pubDate>Thu, 14 Jun 2018 00:00:00 +0000</pubDate>
+      <title>modelgrid - a framework for creating, managing and training multiple models</title>
+      <link>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</link>
+      <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
       
-      <guid>/2018/06/14/tester/</guid>
-      <description>this is just a small `test</description>
+      <guid>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</guid>
+      <description></description>
     </item>
     
     <item>

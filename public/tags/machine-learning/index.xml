@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Machine Learning on A Hugo website</title>
+    <link>/tags/machine-learning/</link>
+    <description>Recent content in Machine Learning on A Hugo website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 14 Jul 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>modelgrid - a framework for creating, managing and training multiple models</title>
+      <link>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</link>
+      <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
