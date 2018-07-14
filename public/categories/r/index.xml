@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>R on A Hugo website</title>
+    <title>R on pRopaganda by smaakagen</title>
     <link>/categories/r/</link>
-    <description>Recent content in R on A Hugo website</description>
+    <description>Recent content in R on pRopaganda by smaakagen</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 14 Jul 2018 00:00:00 +0000</lastBuildDate>
@@ -17,20 +17,9 @@
       <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
       
       <guid>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</guid>
-      <description>modelgrid 1.1.0.0 is now available on CRAN. modelgrid offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving modelgrid a spin.
-This is the first official release, so below I describe the key concept behind modelgrid as well as the features of modelgrid divided into three main categories:
+      <description>‘modelgrid’ is a new package of mine, which has just made its way to CRAN. ‘modelgrid’ offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving modelgrid a spin.
+Below I describe the key concept behind modelgrid as well as the features of modelgrid divided into three main categories:
 Creating a model gridTraining a model gridEditing and removing models from a model gridKey concept behind the model gridWhen facing a Machine Learning problem, you typically want to try out a lot of models in order to find out, what works and what does not.</description>
-    </item>
-    
-    <item>
-      <title>Hello R Markdown</title>
-      <link>/2015/07/23/hello-r-markdown/</link>
-      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
-      
-      <guid>/2015/07/23/hello-r-markdown/</guid>
-      <description>R MarkdownThis is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
-You can embed an R code chunk like this:
-summary(cars)## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
     </item>
     
   </channel>

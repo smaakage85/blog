@@ -9,8 +9,8 @@ tags: ["modelgrid", "framework", "caret", "machine learning", "multiple models"]
 
 
 
-<p>modelgrid 1.1.0.0 is now available on CRAN. modelgrid offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving <code>modelgrid</code> a spin.</p>
-<p>This is the first official release, so below I describe the key concept behind <code>modelgrid</code> as well as the features of <code>modelgrid</code> divided into three main categories:</p>
+<p>‘modelgrid’ is a new package of mine, which has just made its way to CRAN. ‘modelgrid’ offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving <code>modelgrid</code> a spin.</p>
+<p>Below I describe the key concept behind <code>modelgrid</code> as well as the features of <code>modelgrid</code> divided into three main categories:</p>
 <ul>
 <li>Creating a model grid</li>
 <li>Training a model grid</li>
@@ -263,8 +263,8 @@ mg &lt;-
   add_model(model_name = &quot;Funky Forest&quot;,
             method = &quot;rf&quot;) %&gt;%
   train(.)
-#&gt; [2018-07-14 21:03:56] Training of &#39;Funky Forest&#39; started.
-#&gt; [2018-07-14 21:04:19] Training of &#39;Funky Forest&#39; completed.
+#&gt; [2018-07-14 21:14:30] Training of &#39;Funky Forest&#39; started.
+#&gt; [2018-07-14 21:14:55] Training of &#39;Funky Forest&#39; completed.
 
 names(mg$model_fits)
 #&gt; [1] &quot;Funky Forest&quot;                  &quot;Logistic Regression Baseline&quot; 
@@ -308,10 +308,10 @@ rec &lt;-
     family = binomial(link = &quot;logit&quot;)
   ) %&gt;%
   train(.)
-#&gt; [2018-07-14 21:04:20] Training of &#39;Log Reg&#39; started.
-#&gt; [2018-07-14 21:04:21] Training of &#39;Log Reg&#39; completed.
-#&gt; [2018-07-14 21:04:21] Training of &#39;Log Reg PCA&#39; started.
-#&gt; [2018-07-14 21:04:23] Training of &#39;Log Reg PCA&#39; completed.
+#&gt; [2018-07-14 21:14:55] Training of &#39;Log Reg&#39; started.
+#&gt; [2018-07-14 21:14:57] Training of &#39;Log Reg&#39; completed.
+#&gt; [2018-07-14 21:14:57] Training of &#39;Log Reg PCA&#39; started.
+#&gt; [2018-07-14 21:14:58] Training of &#39;Log Reg PCA&#39; completed.
 
 mg_rec$model_fits %&gt;%
   caret::resamples(.) %&gt;%
