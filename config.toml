@@ -18,6 +18,9 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 [[menu.main]]
     name = "LinkedIn"
     url = "https://www.linkedin.com/in/lars-kjeldgaard-321b0351/"
+[[menu.main]]
+    name = "R-bloggers"
+    url = "https://www.r-bloggers.com/"
 
 [params]
     description = "A blog with loads of pRopaganda by the notorious smaakage85"
