@@ -264,7 +264,9 @@ mg <-
             method = "rf") %>%
   train(.)
 
-names(mg$model_fits)
+mg$model_fits %>%
+  caret::resamples(.) %>%
+  summary(.)
 ```
 
 If you call `train` with the 'train_all' argument set to `TRUE`, all models will
