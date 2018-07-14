@@ -266,7 +266,7 @@ mg <-
 
 mg$model_fits %>%
   caret::resamples(.) %>%
-  summary(.)
+  lattice::bwplot(.)
 ```
 
 If you call `train` with the 'train_all' argument set to `TRUE`, all models will

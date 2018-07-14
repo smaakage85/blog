@@ -232,49 +232,8 @@ mg &lt;-
 
 mg$model_fits %&gt;%
   caret::resamples(.) %&gt;%
-  summary(.)
-#&gt; 
-#&gt; Call:
-#&gt; summary.resamples(object = .)
-#&gt; 
-#&gt; Models: Funky Forest, Logistic Regression Baseline, Logistic Regression PCA, Logistic Regression PCA 98e-2 
-#&gt; Number of resamples: 5 
-#&gt; 
-#&gt; ROC 
-#&gt;                                    Min.   1st Qu.    Median      Mean
-#&gt; Funky Forest                  0.7657738 0.7818452 0.7855357 0.7875476
-#&gt; Logistic Regression Baseline  0.7616667 0.7673810 0.7741667 0.7812381
-#&gt; Logistic Regression PCA       0.7505952 0.7655952 0.7734524 0.7777857
-#&gt; Logistic Regression PCA 98e-2 0.7460714 0.7601190 0.7630952 0.7741905
-#&gt;                                 3rd Qu.      Max. NA&#39;s
-#&gt; Funky Forest                  0.7969048 0.8076786    0
-#&gt; Logistic Regression Baseline  0.7897619 0.8132143    0
-#&gt; Logistic Regression PCA       0.7878571 0.8114286    0
-#&gt; Logistic Regression PCA 98e-2 0.7823810 0.8192857    0
-#&gt; 
-#&gt; Sens 
-#&gt;                                    Min.   1st Qu.    Median      Mean
-#&gt; Funky Forest                  0.4166667 0.4500000 0.5166667 0.4866667
-#&gt; Logistic Regression Baseline  0.3833333 0.4666667 0.5000000 0.4933333
-#&gt; Logistic Regression PCA       0.4166667 0.4500000 0.5166667 0.4866667
-#&gt; Logistic Regression PCA 98e-2 0.3666667 0.4333333 0.4333333 0.4866667
-#&gt;                                 3rd Qu.      Max. NA&#39;s
-#&gt; Funky Forest                  0.5166667 0.5333333    0
-#&gt; Logistic Regression Baseline  0.5166667 0.6000000    0
-#&gt; Logistic Regression PCA       0.5166667 0.5333333    0
-#&gt; Logistic Regression PCA 98e-2 0.5833333 0.6166667    0
-#&gt; 
-#&gt; Spec 
-#&gt;                                    Min.   1st Qu.    Median      Mean
-#&gt; Funky Forest                  0.8785714 0.8785714 0.8928571 0.8928571
-#&gt; Logistic Regression Baseline  0.8285714 0.8642857 0.8714286 0.8671429
-#&gt; Logistic Regression PCA       0.8357143 0.8785714 0.8785714 0.8714286
-#&gt; Logistic Regression PCA 98e-2 0.8357143 0.8714286 0.8714286 0.8671429
-#&gt;                                 3rd Qu.      Max. NA&#39;s
-#&gt; Funky Forest                  0.9071429 0.9071429    0
-#&gt; Logistic Regression Baseline  0.8857143 0.8857143    0
-#&gt; Logistic Regression PCA       0.8785714 0.8857143    0
-#&gt; Logistic Regression PCA 98e-2 0.8785714 0.8785714    0</code></pre>
+  lattice::bwplot(.)</code></pre>
+<p><img src="/post/2018-07-14-modelgrid-a-framework-for-creating-managing-and-training-multiple-models_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <p>If you call <code>train</code> with the ‘train_all’ argument set to <code>TRUE</code>, all models will be trained regardless.</p>
 </div>
 <div id="support-for-all-train-interfaces" class="section level3">
