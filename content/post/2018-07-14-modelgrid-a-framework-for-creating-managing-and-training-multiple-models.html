@@ -229,8 +229,6 @@ mg &lt;-
   add_model(model_name = &quot;Funky Forest&quot;,
             method = &quot;rf&quot;) %&gt;%
   train(.)
-#&gt; [2018-07-14 22:25:01] Training of &#39;Funky Forest&#39; started.
-#&gt; [2018-07-14 22:25:25] Training of &#39;Funky Forest&#39; completed.
 
 names(mg$model_fits)
 #&gt; [1] &quot;Funky Forest&quot;                  &quot;Logistic Regression Baseline&quot; 
@@ -274,10 +272,6 @@ rec &lt;-
     family = binomial(link = &quot;logit&quot;)
   ) %&gt;%
   train(.)
-#&gt; [2018-07-14 22:25:26] Training of &#39;Log Reg&#39; started.
-#&gt; [2018-07-14 22:25:27] Training of &#39;Log Reg&#39; completed.
-#&gt; [2018-07-14 22:25:27] Training of &#39;Log Reg PCA&#39; started.
-#&gt; [2018-07-14 22:25:28] Training of &#39;Log Reg PCA&#39; completed.
 
 mg_rec$model_fits %&gt;%
   caret::resamples(.) %&gt;%
@@ -321,7 +315,7 @@ mg$models$`Logistic Regression PCA`
 #&gt; 
 #&gt; $preProc
 #&gt; [1] &quot;nzv&quot;    &quot;center&quot; &quot;scale&quot;  &quot;ICA&quot;</code></pre>
-<p>As you see, when you modify an existing model specification, any corresponding fitted model is deleted, so that nothing is out of sync.</p>
+<p>As you see, when you modify an existing model specification, any corresponding fitted model is deleted, so that everything is in sync.</p>
 <p>You can also remove a model specification (including any fitted model) from the model grid with the <code>remove_model</code> function.</p>
 <pre class="r"><code>names(mg$models)
 #&gt; [1] &quot;Funky Forest&quot;                  &quot;Logistic Regression Baseline&quot; 

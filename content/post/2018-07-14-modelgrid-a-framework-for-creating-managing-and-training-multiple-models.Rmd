@@ -256,7 +256,7 @@ If we now add an additional models to the model grid, and call `train` on the mo
 grid again, only the new models (those that do not yet have a fit) will be trained
 by default. 
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, message = FALSE}
 # train models from model grid.
 mg <- 
   mg %>%
@@ -287,7 +287,7 @@ rec <-
 With that as a starting point I will create and train a minimal model grid 
 as an example. I will tweak the recipe for one of the models.
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, message = FALSE}
 mg_rec <-
   model_grid() %>%
   share_settings(
@@ -343,7 +343,7 @@ mg$models$`Logistic Regression PCA`
 ```
 
 As you see, when you modify an existing model specification, any corresponding
-fitted model is deleted, so that nothing is out of sync.
+fitted model is deleted, so that everything is in sync.
 
 You can also remove a model specification (including any fitted model) from 
 the model grid with the `remove_model` function.
