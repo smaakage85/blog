@@ -12,10 +12,12 @@ tags: ["modelgrid", "framework", "caret", "machine learning", "multiple models"]
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-`modelgrid` is a new package of mine, which has just made its way on to CRAN. 
+[`modelgrid`](https://cran.r-project.org/web/packages/modelgrid/index.html) is
+a new package of mine, which has just made its way on to CRAN. 
 `modelgrid` offers a minimalistic but very flexible framework to create, manage 
-and train a portfolio of caret models. Note, you should already be fairly familiar
-with the caret package before giving `modelgrid` a spin.
+and train a portfolio of [`caret`](https://cran.r-project.org/web/packages/modelgrid/index.html)
+models. Note, you should already be fairly familiar with the `caret` package 
+before giving `modelgrid` a spin.
 
 Below I describe the key concept behind `modelgrid` as well as the features of 
 `modelgrid` divided into three main categories:
@@ -25,18 +27,18 @@ Below I describe the key concept behind `modelgrid` as well as the features of
 * Editing and removing models from a model grid
 
 After reading this post you should be able to grind models like never before
-using `modelgrid`.
+using the `modelgrid`.
 
 ## Key concept behind the model grid
 When facing a Machine Learning problem, you typically want to try out a lot of
 models in order to find out, what works and what does not. But how can we manage 
 these experiments in a structured, simple and transparent way? You guessed it - 
-by using the `modelgrid` package (yes, I am already familiar with the `caretEnsemble`
+by using the `modelgrid` package (and yes, I am already familiar with the `caretEnsemble`
 package, but I wanted something, that was more flexible and easier/more intuitive
-to work with. Also I wanted a framework, that was Pipe-friendly). 
+to work with. Also I wanted a framework, that was pipe-friendly). 
 
 A tuning grid consists of combinations of hyperparameters for a specific model. 
-A model grid is just an extension of that concept in the sense, that it
+A model grid is just an extension of that concept in the sense that it
 consists of - potentially many - models, each with their own tuning grid. 
 Basically the model grid is built by providing a set of shared settings, that by
 default will apply to all models within the model grid, and defining the settings
@@ -71,7 +73,7 @@ model specification), once the `model_grid` has been trained.
 ## Creating a model grid
 
 The first natural step of setting up the model grid is to define, which settings
-should be shared by all models by default. We will use the GermanCredit data set
+should be shared by all models by default. We will use the `GermanCredit` data set
 from the `caret` package as example data and do just that with the `share_settings`
 function.
 
@@ -119,7 +121,7 @@ mg$models
 ```
 
 `model_grid` requires a (unique) name for each individual model specification, so I
-named this one "Logistic Regression Baseline". If the user does not provide a name,
+named this one 'Logistic Regression Baseline'. If the user does not provide a name,
 a generic name - 'Model[int]' - is generated automatically. 
 
 This is all it takes to create the smallest possible model grid with only one unique
@@ -161,13 +163,13 @@ specifications are consolidated with the shared settings into complete
 `caret` model specifications, which are then trained one by one with
 `caret`.
 
-### Consolidation of settings into complete caret model specifications
+### Consolidation of settings into complete model specifications
 
 For a given model the model settings are consolidated with the
 `consolidate_model` function. Let us see how this works with the three models.
 For the baseline model there is no overlap between the shared settings and
-the settings in the individual model spec, and the settings will just 
-be appended into one configuration.
+the settings in the individual model specification, and hence the settings will
+just be appended into one configuration.
 
 ```{r}
 # there are no conflicts.
@@ -247,7 +249,7 @@ names(mg$model_fits)
 # extract performance.
 mg$model_fits %>%
   caret::resamples(.) %>%
-  summary(.)
+  lattice::bwplot(.)
 ```
 
 If we now add an additional models to the model grid, and call `train` on the model
@@ -265,13 +267,13 @@ mg <-
 names(mg$model_fits)
 ```
 
-If you call `train` with the 'train_all' argument set to TRUE, all models will
+If you call `train` with the 'train_all' argument set to `TRUE`, all models will
 be trained regardless.
 
 ### Support for all train interfaces
 
 The training of a `model_grid` supports both the explicit 'x', 'y' interface to train, 
-the formula interface and last but not least the new powerful 'recipe' interface.
+the 'formula' interface and last but not least the new powerful 'recipe' interface.
 Let us try out the latter. First we will create a basic recipe.
 
 ```{r, message = FALSE}
@@ -317,7 +319,7 @@ mg_rec <-
 
 mg_rec$model_fits %>%
   caret::resamples(.) %>%
-  summary(.)
+  lattice::bwplot(.)
 ```
 
 ## Editing and removing models
