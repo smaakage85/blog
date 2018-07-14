@@ -7,4 +7,6 @@ smaakagen is an infamous data science prodigy currently working at the
 Danish tax authority with applications of extremely complicated algorithms on
 very tiny data sets. 
 
+Please also check out [R-bloggers](http://www.R-bloggers.com/lang/).
+
 ![](http://www.amo.dk/Global/Amo/opskrifter/grundopskrift-smakager2.jpg)
