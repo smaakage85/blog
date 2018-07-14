@@ -6,10 +6,19 @@
     <description>Recent content on pRopaganda by smaakagen</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 14 Jul 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 14 Jul 2018 21:48:51 -0700</lastBuildDate>
     
 	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>About</title>
+      <link>/about/</link>
+      <pubDate>Sat, 14 Jul 2018 21:48:51 -0700</pubDate>
+      
+      <guid>/about/</guid>
+      <description>smaakagen is an infamous data science prodigy currently working at the Danish tax authority with applications of extremely complicated algorithms on very tiny data sets.</description>
+    </item>
     
     <item>
       <title>&#39;modelgrid&#39; - a framework for creating, managing and training multiple models</title>
@@ -17,18 +26,17 @@
       <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
       
       <guid>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</guid>
-      <description>‘modelgrid’ is a new package of mine, which has just made its way to CRAN. ‘modelgrid’ offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving modelgrid a spin.
-Below I describe the key concept behind modelgrid as well as the features of modelgrid divided into three main categories:
-Creating a model gridTraining a model gridEditing and removing models from a model gridKey concept behind the model gridWhen facing a Machine Learning problem, you typically want to try out a lot of models in order to find out, what works and what does not.</description>
+      <description>modelgrid is a new package of mine, which has just made its way on to CRAN. modelgrid offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving modelgrid a spin.
+Below I describe the key concept behind modelgrid as well as the features of modelgrid divided into three main categories:</description>
     </item>
     
     <item>
-      <title>About</title>
+      <title></title>
       <link>/about/</link>
-      <pubDate>Thu, 05 May 2016 21:48:51 -0700</pubDate>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/about/</guid>
-      <description>This is a &amp;ldquo;hello world&amp;rdquo; example website for the blogdown package. The theme was forked from @jrutheiser/hugo-lithium-theme and modified by Yihui Xie.</description>
+      <description>Aboutcode{white-space: pre;}pre:not([class]) {background-color: white;}if (window.hljs) {hljs.configure({languages: []});hljs.initHighlightingOnLoad();if (document.readyState &amp;&amp; document.readyState === &#34;complete&#34;) {window.setTimeout(function() { hljs.initHighlighting(); }, 0);}}h1 {font-size: 34px;}h1.title {font-size: 38px;}h2 {font-size: 30px;}h3 {font-size: 24px;}h4 {font-size: 18px;}h5 {font-size: 16px;}h6 {font-size: 12px;}.</description>
     </item>
     
   </channel>

@@ -20,7 +20,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
     url = "https://www.linkedin.com/in/lars-kjeldgaard-321b0351/"
 
 [params]
-    description = "A website with a vast collection of pRopaganda by the notorious smaakage85"
+    description = "A blog with loads of pRopaganda by the notorious smaakage"
 
     # options for highlight.js (version, additional languages, and theme)
     highlightjsVersion = "9.11.0"

@@ -17,9 +17,8 @@
       <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
       
       <guid>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</guid>
-      <description>‘modelgrid’ is a new package of mine, which has just made its way to CRAN. ‘modelgrid’ offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving modelgrid a spin.
-Below I describe the key concept behind modelgrid as well as the features of modelgrid divided into three main categories:
-Creating a model gridTraining a model gridEditing and removing models from a model gridKey concept behind the model gridWhen facing a Machine Learning problem, you typically want to try out a lot of models in order to find out, what works and what does not.</description>
+      <description>modelgrid is a new package of mine, which has just made its way on to CRAN. modelgrid offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving modelgrid a spin.
+Below I describe the key concept behind modelgrid as well as the features of modelgrid divided into three main categories:</description>
     </item>
     
   </channel>

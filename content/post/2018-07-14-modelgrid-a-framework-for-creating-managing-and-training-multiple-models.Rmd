@@ -12,8 +12,8 @@ tags: ["modelgrid", "framework", "caret", "machine learning", "multiple models"]
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-'modelgrid' is a new package of mine, which has just made its way to CRAN. 
-'modelgrid' offers a minimalistic but very flexible framework to create, manage 
+`modelgrid` is a new package of mine, which has just made its way on to CRAN. 
+`modelgrid` offers a minimalistic but very flexible framework to create, manage 
 and train a portfolio of caret models. Note, you should already be fairly familiar
 with the caret package before giving `modelgrid` a spin.
 
@@ -24,16 +24,19 @@ Below I describe the key concept behind `modelgrid` as well as the features of
 * Training a model grid
 * Editing and removing models from a model grid
 
+After reading this post you should be able to grind models like never before
+using `modelgrid`.
+
 ## Key concept behind the model grid
 When facing a Machine Learning problem, you typically want to try out a lot of
 models in order to find out, what works and what does not. But how can we manage 
 these experiments in a structured, simple and transparent way? You guessed it - 
-by using the `modelgrid` package (and yes, I am familiar with the `caretEnsemble`
+by using the `modelgrid` package (yes, I am already familiar with the `caretEnsemble`
 package, but I wanted something, that was more flexible and easier/more intuitive
-to work with). 
+to work with. Also I wanted a framework, that was Pipe-friendly). 
 
 A tuning grid consists of combinations of hyperparameters for a specific model. 
-A model grid is merely just an extension of that concept in the sense, that it
+A model grid is just an extension of that concept in the sense, that it
 consists of - potentially many - models, each with their own tuning grid. 
 Basically the model grid is built by providing a set of shared settings, that by
 default will apply to all models within the model grid, and defining the settings
@@ -69,7 +72,7 @@ model specification), once the `model_grid` has been trained.
 
 The first natural step of setting up the model grid is to define, which settings
 should be shared by all models by default. We will use the GermanCredit data set
-from the caret package as example data and do just that with the `share_settings`
+from the `caret` package as example data and do just that with the `share_settings`
 function.
 
 ```{r, message = FALSE}
@@ -124,8 +127,8 @@ model configuration. The model grid can be trained with the `train` function. Fo
 more on this go to 'Training a model grid'.
 
 But a model grid with only one model specification is obviously not a really interesting
-use case. Let us insert two more model specifications into the model grid: another two
-logistic regression models, but this time with the features being preprocessed 
+use case. Let us insert another two model specifications into the model grid: a
+set of logistic regression models, only this time with the features being preprocessed 
 with Principal Component Analysis. 
 
 ```{r}
@@ -155,8 +158,8 @@ from the `caret` package, for which I have implemented a S3 method for the
 
 When you call `train` with a `model_grid`, all of the individual model
 specifications are consolidated with the shared settings into complete
-caret model specifications, which are then trained one by one with
-caret.
+`caret` model specifications, which are then trained one by one with
+`caret`.
 
 ### Consolidation of settings into complete caret model specifications
 
@@ -228,7 +231,7 @@ consolidate_model(
 
 When calling the `train` function, the `consolidate_model` function is called
 under the hood with all of the individual models and the shared settings, and
-a set of complete caret model specifications is generated - one for each 
+a set of complete `caret` model specifications is generated - one for each 
 individual model specification.
 
 Afterwards the models are trained one by one with `caret`, and the fitted 
@@ -247,7 +250,7 @@ mg$model_fits %>%
   summary(.)
 ```
 
-If we now add an additional models to the model grid, and call train on the model
+If we now add an additional models to the model grid, and call `train` on the model
 grid again, only the new models (those that do not yet have a fit) will be trained
 by default. 
 
@@ -262,7 +265,7 @@ mg <-
 names(mg$model_fits)
 ```
 
-If you call `train` with the `train_all` argument set to TRUE, all models will
+If you call `train` with the 'train_all' argument set to TRUE, all models will
 be trained regardless.
 
 ### Support for all train interfaces

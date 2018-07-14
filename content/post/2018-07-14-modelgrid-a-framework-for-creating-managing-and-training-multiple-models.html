@@ -9,17 +9,18 @@ tags: ["modelgrid", "framework", "caret", "machine learning", "multiple models"]
 
 
 
-<p>‘modelgrid’ is a new package of mine, which has just made its way to CRAN. ‘modelgrid’ offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving <code>modelgrid</code> a spin.</p>
+<p><code>modelgrid</code> is a new package of mine, which has just made its way on to CRAN. <code>modelgrid</code> offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving <code>modelgrid</code> a spin.</p>
 <p>Below I describe the key concept behind <code>modelgrid</code> as well as the features of <code>modelgrid</code> divided into three main categories:</p>
 <ul>
 <li>Creating a model grid</li>
 <li>Training a model grid</li>
 <li>Editing and removing models from a model grid</li>
 </ul>
+<p>After reading this post you should be able to grind models like never before using <code>modelgrid</code>.</p>
 <div id="key-concept-behind-the-model-grid" class="section level2">
 <h2>Key concept behind the model grid</h2>
-<p>When facing a Machine Learning problem, you typically want to try out a lot of models in order to find out, what works and what does not. But how can we manage these experiments in a structured, simple and transparent way? You guessed it - by using the <code>modelgrid</code> package (and yes, I am familiar with the <code>caretEnsemble</code> package, but I wanted something, that was more flexible and easier/more intuitive to work with).</p>
-<p>A tuning grid consists of combinations of hyperparameters for a specific model. A model grid is merely just an extension of that concept in the sense, that it consists of - potentially many - models, each with their own tuning grid. Basically the model grid is built by providing a set of shared settings, that by default will apply to all models within the model grid, and defining the settings for the individual models in the model grid.</p>
+<p>When facing a Machine Learning problem, you typically want to try out a lot of models in order to find out, what works and what does not. But how can we manage these experiments in a structured, simple and transparent way? You guessed it - by using the <code>modelgrid</code> package (yes, I am already familiar with the <code>caretEnsemble</code> package, but I wanted something, that was more flexible and easier/more intuitive to work with. Also I wanted a framework, that was Pipe-friendly).</p>
+<p>A tuning grid consists of combinations of hyperparameters for a specific model. A model grid is just an extension of that concept in the sense, that it consists of - potentially many - models, each with their own tuning grid. Basically the model grid is built by providing a set of shared settings, that by default will apply to all models within the model grid, and defining the settings for the individual models in the model grid.</p>
 <p>You can pre-allocate an empty model grid with the constructor function <code>model_grid</code> and take a look at the structure.</p>
 <pre class="r"><code>library(modelgrid)
 mg &lt;- model_grid()
@@ -45,7 +46,7 @@ mg
 </div>
 <div id="creating-a-model-grid" class="section level2">
 <h2>Creating a model grid</h2>
-<p>The first natural step of setting up the model grid is to define, which settings should be shared by all models by default. We will use the GermanCredit data set from the caret package as example data and do just that with the <code>share_settings</code> function.</p>
+<p>The first natural step of setting up the model grid is to define, which settings should be shared by all models by default. We will use the GermanCredit data set from the <code>caret</code> package as example data and do just that with the <code>share_settings</code> function.</p>
 <pre class="r"><code>library(magrittr)
 library(caret)
 library(dplyr)
@@ -90,7 +91,7 @@ mg$models
 #&gt; Link function: logit</code></pre>
 <p><code>model_grid</code> requires a (unique) name for each individual model specification, so I named this one “Logistic Regression Baseline”. If the user does not provide a name, a generic name - ‘Model[int]’ - is generated automatically.</p>
 <p>This is all it takes to create the smallest possible model grid with only one unique model configuration. The model grid can be trained with the <code>train</code> function. For more on this go to ‘Training a model grid’.</p>
-<p>But a model grid with only one model specification is obviously not a really interesting use case. Let us insert two more model specifications into the model grid: another two logistic regression models, but this time with the features being preprocessed with Principal Component Analysis.</p>
+<p>But a model grid with only one model specification is obviously not a really interesting use case. Let us insert another two model specifications into the model grid: a set of logistic regression models, only this time with the features being preprocessed with Principal Component Analysis.</p>
 <pre class="r"><code>mg &lt;- 
   mg %&gt;%
   add_model(model_name = &quot;Logistic Regression PCA&quot;,
@@ -151,7 +152,7 @@ mg$models
 <div id="training-a-model-grid" class="section level2">
 <h2>Training a model grid</h2>
 <p>The models from a model grid can be trained with the <code>train</code> function from the <code>caret</code> package, for which I have implemented a S3 method for the <code>model_grid</code> class.</p>
-<p>When you call <code>train</code> with a <code>model_grid</code>, all of the individual model specifications are consolidated with the shared settings into complete caret model specifications, which are then trained one by one with caret.</p>
+<p>When you call <code>train</code> with a <code>model_grid</code>, all of the individual model specifications are consolidated with the shared settings into complete <code>caret</code> model specifications, which are then trained one by one with <code>caret</code>.</p>
 <div id="consolidation-of-settings-into-complete-caret-model-specifications" class="section level3">
 <h3>Consolidation of settings into complete caret model specifications</h3>
 <p>For a given model the model settings are consolidated with the <code>consolidate_model</code> function. Let us see how this works with the three models. For the baseline model there is no overlap between the shared settings and the settings in the individual model spec, and the settings will just be appended into one configuration.</p>
@@ -206,7 +207,7 @@ consolidate_model(
 </div>
 <div id="model-training" class="section level3">
 <h3>Model training</h3>
-<p>When calling the <code>train</code> function, the <code>consolidate_model</code> function is called under the hood with all of the individual models and the shared settings, and a set of complete caret model specifications is generated - one for each individual model specification.</p>
+<p>When calling the <code>train</code> function, the <code>consolidate_model</code> function is called under the hood with all of the individual models and the shared settings, and a set of complete <code>caret</code> model specifications is generated - one for each individual model specification.</p>
 <p>Afterwards the models are trained one by one with <code>caret</code>, and the fitted models are saved in the <code>model_fits</code> component of the model grid.</p>
 <pre class="r"><code># train models from model grid.
 mg &lt;- train(mg)
@@ -263,8 +264,8 @@ mg &lt;-
   add_model(model_name = &quot;Funky Forest&quot;,
             method = &quot;rf&quot;) %&gt;%
   train(.)
-#&gt; [2018-07-14 21:14:30] Training of &#39;Funky Forest&#39; started.
-#&gt; [2018-07-14 21:14:55] Training of &#39;Funky Forest&#39; completed.
+#&gt; [2018-07-14 21:54:51] Training of &#39;Funky Forest&#39; started.
+#&gt; [2018-07-14 21:55:15] Training of &#39;Funky Forest&#39; completed.
 
 names(mg$model_fits)
 #&gt; [1] &quot;Funky Forest&quot;                  &quot;Logistic Regression Baseline&quot; 
@@ -308,10 +309,10 @@ rec &lt;-
     family = binomial(link = &quot;logit&quot;)
   ) %&gt;%
   train(.)
-#&gt; [2018-07-14 21:14:55] Training of &#39;Log Reg&#39; started.
-#&gt; [2018-07-14 21:14:57] Training of &#39;Log Reg&#39; completed.
-#&gt; [2018-07-14 21:14:57] Training of &#39;Log Reg PCA&#39; started.
-#&gt; [2018-07-14 21:14:58] Training of &#39;Log Reg PCA&#39; completed.
+#&gt; [2018-07-14 21:55:16] Training of &#39;Log Reg&#39; started.
+#&gt; [2018-07-14 21:55:17] Training of &#39;Log Reg&#39; completed.
+#&gt; [2018-07-14 21:55:17] Training of &#39;Log Reg PCA&#39; started.
+#&gt; [2018-07-14 21:55:18] Training of &#39;Log Reg PCA&#39; completed.
 
 mg_rec$model_fits %&gt;%
   caret::resamples(.) %&gt;%
