@@ -1,5 +1,5 @@
 ---
-title: '''modelgrid'' - a framework for creating, managing and training multiple models'
+title: 'modelgrid - a framework for creating, managing and training multiple models'
 author: Lars Kjeldgaard
 date: '2018-07-14'
 slug: modelgrid-a-framework-for-creating-managing-and-training-multiple-models
@@ -23,6 +23,7 @@ tags: ["modelgrid", "framework", "caret", "machine learning", "multiple models"]
 <p>A tuning grid consists of combinations of hyperparameters for a specific model. A model grid is just an extension of that concept in the sense that it consists of - potentially many - models, each with their own tuning grid. Basically the model grid is built by providing a set of shared settings, that by default will apply to all models within the model grid, and defining the settings for the individual models in the model grid.</p>
 <p>You can pre-allocate an empty model grid with the constructor function <code>model_grid</code> and take a look at the structure.</p>
 <pre class="r"><code>library(modelgrid)
+#&gt; Warning: pakke &#39;modelgrid&#39; blev bygget under R version 3.5.1
 mg &lt;- model_grid()
 
 mg
@@ -191,7 +192,6 @@ consolidate_model(
 <p>For the model ‘Logistic Regression PCA 98e-2’, the preprocessing options for PCA were adjusted with ‘custom_control’. When the model is consolidated, the model specific customizations of subsettings of the shared ‘trControl’ argument will apply.</p>
 <pre class="r"><code># the &#39;trControl$preProcOptions$thresh&#39; setting is defined in the shared
 # settings but customized in the model specific settings.
-
 mg$shared_settings$trControl$preProcOptions$thresh
 #&gt; [1] 0.95
 mg$models$`Logistic Regression PCA 98e-2`$custom_control$preProcOptions$thresh
@@ -239,7 +239,7 @@ mg$model_fits %&gt;%
 <div id="support-for-all-train-interfaces" class="section level3">
 <h3>Support for all train interfaces</h3>
 <p>The training of a <code>model_grid</code> supports both the explicit ‘x’, ‘y’ interface to train, the ‘formula’ interface and last but not least the new powerful ‘recipe’ interface. Let us try out the latter. First we will create a basic recipe.</p>
-<pre class="r"><code># create base recipe.
+<pre class="r"><code># create basic recipe.
 library(recipes)
 rec &lt;- 
   recipe(GermanCredit, formula = Class ~ .) %&gt;%
@@ -282,7 +282,7 @@ mg_rec$model_fits %&gt;%
 </div>
 <div id="editing-and-removing-models" class="section level2">
 <h2>Editing and removing models</h2>
-<p><code>modelgrid</code> has a couple of functions, that makes it easy to work iteratively with the model specifications in a model grid. If you want to modify an existing model configuration, please use the <code>edit_model</code> function. Below I use it to modify one of the GLM models.</p>
+<p><code>modelgrid</code> has a couple of functions, that makes it easy to work iteratively with the model specifications in a model grid. If you want to modify an existing model configuration, please use the <code>edit_model</code> function. Below I use it to modify one of the generalized linear models.</p>
 <pre class="r"><code># existing model configuration.
 mg$models$`Logistic Regression PCA`
 #&gt; $method
@@ -331,6 +331,7 @@ mg &lt;-
 names(mg$models)
 #&gt; [1] &quot;Logistic Regression Baseline&quot;  &quot;Logistic Regression PCA 98e-2&quot;
 #&gt; [3] &quot;Logistic Regression PCA&quot;</code></pre>
-<p>That’s it! You should now be all set to grind models with the <code>modelgrid</code>!</p>
-<p>Peace out /smaakagen</p>
+<p>That’s it! You should now be all set to grind models with the <code>modelgrid</code>.</p>
+<p>Peace out</p>
+<p>/smaakagen</p>
 </div>

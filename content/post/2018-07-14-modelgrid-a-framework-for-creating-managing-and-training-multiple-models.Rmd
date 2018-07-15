@@ -1,5 +1,5 @@
 ---
-title: '''modelgrid'' - a framework for creating, managing and training multiple models'
+title: 'modelgrid - a framework for creating, managing and training multiple models'
 author: Lars Kjeldgaard
 date: '2018-07-14'
 slug: modelgrid-a-framework-for-creating-managing-and-training-multiple-models
@@ -217,7 +217,6 @@ apply.
 ```{r}
 # the 'trControl$preProcOptions$thresh' setting is defined in the shared
 # settings but customized in the model specific settings.
-
 mg$shared_settings$trControl$preProcOptions$thresh
 mg$models$`Logistic Regression PCA 98e-2`$custom_control$preProcOptions$thresh
 
@@ -279,7 +278,7 @@ the 'formula' interface and last but not least the new powerful 'recipe' interfa
 Let us try out the latter. First we will create a basic recipe.
 
 ```{r, message = FALSE}
-# create base recipe.
+# create basic recipe.
 library(recipes)
 rec <- 
   recipe(GermanCredit, formula = Class ~ .) %>%
@@ -329,7 +328,7 @@ mg_rec$model_fits %>%
 `modelgrid` has a couple of functions, that makes it easy to work iteratively
 with the model specifications in a model grid. If you want to modify an
 existing model configuration, please use the `edit_model` function. Below
-I use it to modify one of the GLM models.
+I use it to modify one of the generalized linear models.
 
 ```{r}
 # existing model configuration.
@@ -361,7 +360,8 @@ mg <-
 names(mg$models)
 ```
 
-That's it! You should now be all set to grind models with the `modelgrid`!
+That's it! You should now be all set to grind models with the `modelgrid`.
 
 Peace out
+
 /smaakagen
