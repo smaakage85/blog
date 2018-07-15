@@ -47,7 +47,7 @@ for the individual models in the model grid.
 You can pre-allocate an empty model grid with the constructor function 
 `model_grid` and take a look at the structure.
 
-```{r, message = FALSE}
+```{r, message = FALSE, warning = FALSE}
 library(modelgrid)
 mg <- model_grid()
 
