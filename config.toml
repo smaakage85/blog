@@ -34,6 +34,22 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
     MathJaxCDN = "//cdn.bootcss.com"
     MathJaxVersion = "2.7.1"
 
+    # Eksperiment
+    enableRSS = true
+    
+    [outputs]
+    home = [ "HTML", "RSS", "RFEED"]
+
+    [outputFormats]
+    [outputFormats.RSS]
+    mediatype = "application/rss"
+    baseName = "feed"
+
+    [outputFormats.RFEED]
+    mediatype = "application/rss"
+    baseName = "feed_r"
+    noUgly = true
+    
     [params.logo]
     url = "logo.png"
     width = 50

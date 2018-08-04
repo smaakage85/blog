@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on pRopaganda by smaakagen</title>
+    <link>/tags/</link>
+    <description>Recent content in Tags on pRopaganda by smaakagen</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 14 Jul 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/feed.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Caret</title>
+      <link>/tags/caret/</link>
+      <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/caret/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Framework</title>
+      <link>/tags/framework/</link>
+      <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/framework/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Machine Learning</title>
+      <link>/tags/machine-learning/</link>
+      <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/machine-learning/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Modelgrid</title>
+      <link>/tags/modelgrid/</link>
+      <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/modelgrid/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Multiple Models</title>
+      <link>/tags/multiple-models/</link>
+      <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/multiple-models/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

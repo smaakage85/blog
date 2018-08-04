@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>R on pRopaganda by smaakagen</title>
+    <link>/categories/r/</link>
+    <description>Recent content in R on pRopaganda by smaakagen</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 14 Jul 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/categories/r/feed.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>modelgrid - a framework for creating, managing and training multiple models</title>
+      <link>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</link>
+      <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</guid>
+      <description>modelgrid is a new package of mine, which has just made its way on to CRAN. modelgrid offers a minimalistic but very flexible framework to create, manage and train a portfolio of caret models. Note, you should already be fairly familiar with the caret package before giving modelgrid a spin.
+Below I describe the key concept behind modelgrid as well as the features of modelgrid divided into three main categories:</description>
+    </item>
+    
+  </channel>
+</rss>
