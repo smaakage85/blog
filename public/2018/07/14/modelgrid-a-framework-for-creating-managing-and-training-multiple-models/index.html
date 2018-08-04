@@ -302,6 +302,7 @@ mg$model_fits %&gt;%
 <p>The training of a <code>model_grid</code> supports both the explicit ‘x’, ‘y’ interface to train, the ‘formula’ interface and last but not least the new powerful ‘recipe’ interface. Let us try out the latter. First we will create a basic recipe.</p>
 <pre class="r"><code># create basic recipe.
 library(recipes)
+#&gt; Warning: pakke &#39;broom&#39; blev bygget under R version 3.5.1
 rec &lt;- 
   recipe(GermanCredit, formula = Class ~ .) %&gt;%
   step_nzv(all_predictors())</code></pre>
