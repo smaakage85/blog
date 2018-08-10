@@ -37,18 +37,10 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
     # Eksperiment
     enableRSS = true
     
-    [outputs]
-    home = [ "HTML", "RSS", "RFEED"]
-
     [outputFormats]
     [outputFormats.RSS]
     mediatype = "application/rss"
     baseName = "feed"
-
-    [outputFormats.RFEED]
-    mediatype = "application/rss"
-    baseName = "feed_r"
-    noUgly = true
     
     [params.logo]
     url = "logo.png"

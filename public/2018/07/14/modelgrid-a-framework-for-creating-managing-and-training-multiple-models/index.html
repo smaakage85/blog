@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Hugo 0.42.1" />
+<meta name="generator" content="Hugo 0.46" />
 
 
 <title>modelgrid - a framework for creating, managing and training multiple models - pRopaganda by smaakagen</title>
@@ -111,6 +111,7 @@ mg
 <p>The first natural step of setting up the model grid is to define, which settings should be shared by all models by default. We will use the <code>GermanCredit</code> data set from the <code>caret</code> package as example data and do just that with the <code>share_settings</code> function.</p>
 <pre class="r"><code>library(magrittr)
 library(caret)
+#&gt; Warning: pakke &#39;caret&#39; blev bygget under R version 3.5.1
 library(dplyr)
 library(purrr)
 # Load data on German credit applications.  
