@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Recipes on pRopaganda by smaakagen</title>
+    <link>/tags/recipes/</link>
+    <description>Recent content in Recipes on pRopaganda by smaakagen</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 24 Sep 2018 00:00:00 +0000</lastBuildDate>
+    
+        <atom:link href="/tags/recipes/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Tuning a data preprocessing pipeline with recipes and modelgrid</title>
+      <link>/2018/09/24/tuning-a-data-preprocessing-pipeline-with-recipes-and-modelgrid/</link>
+      <pubDate>Mon, 24 Sep 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/2018/09/24/tuning-a-data-preprocessing-pipeline-with-recipes-and-modelgrid/</guid>
+      <description>&lt;p&gt;In this post I will demonstrate, how the &lt;a href=&#34;https://cran.r-project.org/web/packages/modelgrid/index.html&#34;&gt;&lt;code&gt;modelgrid&lt;/code&gt;&lt;/a&gt; package can be used to facilitate experiments with the data preprocessing pipeline of a predictive model.&lt;/p&gt;
+&lt;div id=&#34;data-preprocessing---an-integral-part-of-a-model-configuration&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Data preprocessing - an integral part of a model configuration&lt;/h2&gt;
+&lt;p&gt;Model tuning is not just a matter of tuning the hyperparameters of an algorithm. Since data preprocessing is also an integral part of the model development workflow, it is just as relevant to experiment with the data preprocessing pipeline of a model configuration. When “tuning” a model, the data preprocessing pipeline should therefore also be tuned.&lt;/p&gt;
+&lt;p&gt;In the following I will present an example of tuning a data preprocessing pipeline using &lt;code&gt;modelgrid&lt;/code&gt; in combination with &lt;a href=&#34;https://github.com/tidymodels/recipes&#34;&gt;&lt;code&gt;recipes&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;use-case-cell-segmentation-in-high-content-screening&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Use case: Cell Segmentation in High-Content Screening&lt;/h2&gt;
+&lt;p&gt;I will use the Cell Segmentation data set described in the excellent book &lt;a href=&#34;http://appliedpredictivemodeling.com/&#34;&gt;&lt;strong&gt;‘Applied Predictive Modelling’&lt;/strong&gt;&lt;/a&gt; as an example.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(AppliedPredictiveModeling)
+data(segmentationOriginal)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The data set consists of 2019 samples, where each sample represents a cell. Of these cells, 1300 were judged to be poorly segmented and 719 were well segmented; 1009 cells were reserved for the training set.&lt;/p&gt;
+&lt;p&gt;In each cell 116 measurements were taken. They are all available as numeric predictors.&lt;/p&gt;
+&lt;p&gt;For more information on the data set look &lt;a href=&#34;https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-8-340&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Our goal is to develop a classification model, that separates the poorly segmented from the well segmented cells.&lt;/p&gt;
+&lt;div id=&#34;data-at-a-glance&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Data at a glance&lt;/h3&gt;
+&lt;p&gt;First, let us take a quick look at the data. We will do that by inspecting the between-predictor correlations of the predictors expressed by a correlation matrix of the training data set. The variables are grouped adjacent to each other according to their mutual correlations.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Extract training data.
+training &amp;lt;- filter(segmentationOriginal, Case == &amp;quot;Train&amp;quot;)
+
+# Extract predictors.
+predictors &amp;lt;- training %&amp;gt;% select(-(c(&amp;quot;Class&amp;quot;, &amp;quot;Case&amp;quot;, &amp;quot;Cell&amp;quot;))) 
+
+# Identify variables with zero variance.
+zero_variance_predictors &amp;lt;- map_lgl(predictors, ~ n_distinct(.x) == 1)
+
+# Remove predictors with zero variance.
+predictors &amp;lt;- predictors[, !zero_variance_predictors]
+
+# Compute and plot a correlation matrix of remaining predictors.
+library(corrplot)
+predictors %&amp;gt;%
+  cor(.) %&amp;gt;%
+  corrplot(., order = &amp;quot;hclust&amp;quot;, tl.cex = .35)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-24-tuning-a-data-preprocessing-pipeline-with-recipes-and-modelgrid_files/figure-html/unnamed-chunk-4-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;From the graph, it seems that there are groups of predictors, that have strong positive correlations (dark blue).&lt;/p&gt;
+&lt;p&gt;There can be good reasons for avoiding variables, that are highly correlated, some of them being (as stated in &lt;a href=&#34;http://appliedpredictivemodeling.com/&#34;&gt;&lt;strong&gt;‘Applied Predictive Modelling’&lt;/strong&gt;&lt;/a&gt;):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Redundant/highly correlated predictors often add more complexity than information to the model&lt;/li&gt;
+&lt;li&gt;Mathematical disadvantages: can result in very unstable models (high variance), numerical errors and inferior predictive performance.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The aim of my modelling experiments will be to apply different preprocessing techniques in order to mitigate the potential pitfalls of the “collinearity clusters”, that we are observing amongst the field of predictors.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;create-initial-recipe&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Create initial recipe&lt;/h3&gt;
+&lt;p&gt;First, let us set up a starting point for our data preprocessing pipeline in our modeling experiments. For this purpose I apply the &lt;strong&gt;awesome&lt;/strong&gt; &lt;code&gt;recipes&lt;/code&gt; package and create a - very basic - recipe, that will serve as an anchor for my model configurations.&lt;/p&gt;
+&lt;p&gt;In this recipe I declare the roles of all variables in the data set and state, that variables with zero variances should be removed.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(recipes)
+initial_recipe &amp;lt;- recipe(training) %&amp;gt;%
+  add_role(Class, new_role = &amp;quot;outcome&amp;quot;) %&amp;gt;%
+  add_role(Cell, new_role = &amp;quot;id variable&amp;quot;) %&amp;gt;%
+  add_role(Case, new_role = &amp;quot;splitting indicator&amp;quot;) %&amp;gt;%
+  add_role(-Class, -Cell, -Case, new_role = &amp;quot;predictor&amp;quot;) %&amp;gt;%
+  step_zv(all_predictors())&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can ‘prep’ the recipe and get an impression of, what it is actually doing. It seems, it removes two of the predictors due to them having variances of zero.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;prep_rec &amp;lt;- prep(initial_recipe)
+tidy(prep_rec, 1)
+#&amp;gt; # A tibble: 2 x 1
+#&amp;gt;   terms                       
+#&amp;gt;   &amp;lt;chr&amp;gt;                       
+#&amp;gt; 1 MemberAvgAvgIntenStatusCh2  
+#&amp;gt; 2 MemberAvgTotalIntenStatusCh2&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;set-up-a-model-grid&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Set up a model grid&lt;/h3&gt;
+&lt;p&gt;In order to organize and structure my experiments with different data preprocessing pipelines I apply my &lt;a href=&#34;https://github.com/smaakage85/modelgrid&#34;&gt;&lt;code&gt;modelgrid&lt;/code&gt;&lt;/a&gt; package, that offers &lt;a href=&#34;http://smaakage85.netlify.com/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/&#34;&gt;a framework for constructing, training and managing multiple &lt;code&gt;caret&lt;/code&gt; models&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;modelgrid&lt;/code&gt; separates the specification of a(ny number of) &lt;code&gt;caret&lt;/code&gt; model(s) from the training/estimation of the model(s). By doing so, &lt;code&gt;modelgrid&lt;/code&gt; follows the same principles as the new promising package &lt;a href=&#34;https://github.com/topepo/parsnip&#34;&gt;&lt;code&gt;parsnip&lt;/code&gt;&lt;/a&gt;, which is under construction.&lt;/p&gt;
+&lt;p&gt;Assume, that we want to estimate a family of Generalized Linear Models, all with different data preprocessing pipelines. I have decided on the following conditions for the model training:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Apply a cross-validation resampling scheme with 5 folds.&lt;/li&gt;
+&lt;li&gt;Tune the models and measure performance using the standard and highly versatile ‘Area Under the Curve’ (AUC(/ROC)) metric.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I construct a &lt;strong&gt;model_grid&lt;/strong&gt; and set the settings, that by default will apply to all of my models, accordingly.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(modelgrid)
+library(caret)
+
+models &amp;lt;- 
+  # create empty model grid with constructor function.
+  model_grid() %&amp;gt;%
+  # set shared settings, that will apply to all models by default.
+  share_settings(
+    data = training,
+    trControl = trainControl(method = &amp;quot;cv&amp;quot;,
+                             number = 5,
+                             summaryFunction = twoClassSummary,
+                             classProbs = TRUE),
+    metric = &amp;quot;ROC&amp;quot;,
+    method = &amp;quot;glm&amp;quot;,
+    family = binomial(link = &amp;quot;logit&amp;quot;)
+  )&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We are now ready to add individual model specifications, each with their own data preprocessing pipeline to the model grid.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;adding-the-first-model-specifications-to-the-model-grid&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Adding the first model specifications to the model grid&lt;/h3&gt;
+&lt;p&gt;We will kick things off by adding the first model specification to my model grid. In this configuration I just apply our initial data preprocessing recipe and do no further. I will refer to this model as ‘baseline’.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;models &amp;lt;- models %&amp;gt;%
+  add_model(model_name = &amp;quot;baseline&amp;quot;, 
+            x = initial_recipe)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;One way of dealing with the potential drawbacks of the observed “collinearity clusters” is to apply a correlation filter. The correlation filter poses a heuristic approach to dealing with highly correlated predictors. It removes the predictors with the highest between-predictor correlations one at a time, until all between-predictor correlations are below some critical threshold.&lt;/p&gt;
+&lt;p&gt;In order to do so, I extend my initial recipe with an additional step, that applies the correlation filter. Furthermore I will try out different values for the between-predictor correlation threshold value of the filter, essentially treating it as a hyperparameter.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;models &amp;lt;- models %&amp;gt;%
+  add_model(model_name = &amp;quot;corr_.7&amp;quot;, 
+            x = initial_recipe %&amp;gt;%
+              step_corr(all_predictors(), threshold = .7)) %&amp;gt;%
+  add_model(model_name = &amp;quot;corr_.8&amp;quot;, 
+            x = initial_recipe %&amp;gt;%
+              step_corr(all_predictors(), threshold = .8)) %&amp;gt;%
+  add_model(model_name = &amp;quot;corr_.9&amp;quot;, 
+            x = initial_recipe %&amp;gt;%
+              step_corr(all_predictors(), threshold = .9))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The construction of these model specifications can - and indeed should - be parametrized. Especially if you want to try out a wider range of values for the ‘threshold’ parameter than just the three, that I have denoted here.&lt;/p&gt;
+&lt;p&gt;Great, now we have a bunch of models specifications. We will train them right away and take a first look at the results.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Train models.
+models &amp;lt;- models %&amp;gt;% train(.)
+# Display resampled performance statistics of the fitted models using standard 
+# functionality from the &amp;#39;caret&amp;#39; package.
+models$model_fits %&amp;gt;% resamples(.) %&amp;gt;% bwplot(.)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-24-tuning-a-data-preprocessing-pipeline-with-recipes-and-modelgrid_files/figure-html/unnamed-chunk-10-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;Judging by the resampled AUC performance statistics it seems, that there &lt;em&gt;could&lt;/em&gt; be a case for applying a correlation filter on the set of predictors. Apparently, the model with a correlation filter with a between-predictor correlation threshold value of .7 added to the data preprocessing pipeline yields the best median resampled AUC. Of the four models, this model is by far the least complex.&lt;/p&gt;
+&lt;p&gt;We can see this by taking a look at the number of predictors, that were actually used in the final models (after removing variables with a correlation filter (if any)).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;models$model_fits %&amp;gt;%
+  map(pluck(c(&amp;quot;recipe&amp;quot;, &amp;quot;term_info&amp;quot;, &amp;quot;role&amp;quot;))) %&amp;gt;%
+  map_int(~ sum(.x == &amp;quot;predictor&amp;quot;))
+#&amp;gt; baseline  corr_.7  corr_.8  corr_.9 
+#&amp;gt;      114       60       78       93&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The ‘corr_.7’ model configuration only uses 60 predictors (after removal of highly correlated predictors), hence it only estimates 61 coefficients. In contrast the ‘baseline’ model uses all predictors (except the two variables with zero variances) and estimates 115 coefficients in total making it a much more complex model (by means of a higher variance) and more prone to the risk of overfitting.&lt;/p&gt;
+&lt;p&gt;Overall it seems like applying a correlation filter with a correlation threshold value of 0.7 as part of the data preprocessing pipeline could be a good idea.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;dimensionality-reduction-with-pca&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Dimensionality reduction with PCA&lt;/h3&gt;
+&lt;p&gt;Another approach to dealing with highly correlated predictors is to apply a Principal Component Analysis transformation of the predictors in order to reduce the dimensions of data set. You can read more about the PCA technique &lt;a href=&#34;https://www-bcf.usc.edu/~gareth/ISL/ISLR%20First%20Printing.pdf&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This approach can be tested by tweaking my initial data preprocessing recipe once again with a couple of additional steps. Before actually conducting PCA, features are centered and scaled. This is completely standard.&lt;/p&gt;
+&lt;p&gt;For the PCA transformation I vary the ‘threshold’ value, which is the fraction of the total variance of the predictors that should be covered by the components. The higher the value of ‘threshold’, the higher the number of components used.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Extend recipe with centering and scaling steps.
+rec_center_scale &amp;lt;- initial_recipe %&amp;gt;%
+  step_center(all_predictors()) %&amp;gt;%
+  step_scale(all_predictors())
+
+# Add model specifications with pca for dimensionality reduction.
+models &amp;lt;- models %&amp;gt;%
+  add_model(model_name = &amp;quot;pca_.75&amp;quot;, 
+            x = rec_center_scale %&amp;gt;%
+              step_pca(all_predictors(), threshold = .75)) %&amp;gt;%
+  add_model(model_name = &amp;quot;pca_.85&amp;quot;,
+            x = rec_center_scale %&amp;gt;%
+              step_pca(all_predictors(), threshold = .85)) %&amp;gt;%
+  add_model(model_name = &amp;quot;pca_.95&amp;quot;,
+            x = rec_center_scale %&amp;gt;%
+              step_pca(all_predictors(), threshold = .95))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let us train the new model configurations and display the results.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;models &amp;lt;- train(models)
+models$model_fits %&amp;gt;% caret::resamples(.) %&amp;gt;% bwplot(.)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-24-tuning-a-data-preprocessing-pipeline-with-recipes-and-modelgrid_files/figure-html/unnamed-chunk-13-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;Applying a data preprocessing pipeline with a PCA transformation capturing 95 pct. of the total variance of the set of predictors actually returns the highest resampled median value of AUC.&lt;/p&gt;
+&lt;p&gt;You can look up, how many principal components that were used in the different model configurations in order to account for the desired amount of total variance of the predictors.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;models$model_fits[c(&amp;quot;pca_.75&amp;quot;, &amp;quot;pca_.85&amp;quot;, &amp;quot;pca_.95&amp;quot;)] %&amp;gt;%
+  map(pluck(c(&amp;quot;recipe&amp;quot;, &amp;quot;term_info&amp;quot;, &amp;quot;role&amp;quot;))) %&amp;gt;%
+  map_int(~ sum(.x == &amp;quot;predictor&amp;quot;))
+#&amp;gt; pca_.75 pca_.85 pca_.95 
+#&amp;gt;      22      34      58&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To summarize, adding a PCA transformation or a correlation filter to the data preprocessing pipeline seem like good ways of dealing with the “collinearity clusters” in the data set.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conclusions&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Conclusions&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Experimenting with the data preprocessing pipeline can be seen as part of the model tuning process. Parameters of the data preprocessing pipeline can be thought of as tuning parameters.&lt;/li&gt;
+&lt;li&gt;These kinds of experiments can be organized and conducted easily using R packages &lt;code&gt;recipes&lt;/code&gt; and &lt;code&gt;caret&lt;/code&gt; in combination with &lt;code&gt;modelgrid&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div id=&#34;whats-next&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;What’s next?&lt;/h2&gt;
+&lt;p&gt;I have been thinking about how to extend the functionality of &lt;code&gt;modelgrid&lt;/code&gt; further in order to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Parametrize experiments with the parameters of the data preprocessing pipeline. But actually I was under the impression, that others are working on developing similar functionality for tuning parameters of the data preprocessing pipeline. Am I wrong here?&lt;/li&gt;
+&lt;li&gt;Support &lt;code&gt;parsnip&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;To expose models and model configurations from a model grid in a more ‘tidy’ way.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Best, smaakagen&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

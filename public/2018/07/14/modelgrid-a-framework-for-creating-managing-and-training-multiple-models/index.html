@@ -115,7 +115,6 @@ mg
 <p>The first natural step of setting up the model grid is to define, which settings should be shared by all models by default. We will use the <code>GermanCredit</code> data set from the <code>caret</code> package as example data and do just that with the <code>share_settings</code> function.</p>
 <pre class="r"><code>library(magrittr)
 library(caret)
-#&gt; Warning: pakke &#39;caret&#39; blev bygget under R version 3.5.1
 library(dplyr)
 library(purrr)
 # Load data on German credit applications.  
@@ -307,7 +306,6 @@ mg$model_fits %&gt;%
 <p>The training of a <code>model_grid</code> supports both the explicit ‘x’, ‘y’ interface to train, the ‘formula’ interface and last but not least the new powerful ‘recipe’ interface. Let us try out the latter. First we will create a basic recipe.</p>
 <pre class="r"><code># create basic recipe.
 library(recipes)
-#&gt; Warning: pakke &#39;broom&#39; blev bygget under R version 3.5.1
 rec &lt;- 
   recipe(GermanCredit, formula = Class ~ .) %&gt;%
   step_nzv(all_predictors())</code></pre>

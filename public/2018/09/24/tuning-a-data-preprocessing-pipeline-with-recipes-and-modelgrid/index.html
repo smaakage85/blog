@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.46" />
+
+
+<title>Tuning a data preprocessing pipeline with recipes and modelgrid - pRopaganda by smaakagen</title>
+<meta property="og:title" content="Tuning a data preprocessing pipeline with recipes and modelgrid - pRopaganda by smaakagen">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About smaakagen</a></li>
+    
+    <li><a href="https://github.com/smaakage85/">GitHub</a></li>
+    
+    <li><a href="https://www.linkedin.com/in/lars-kjeldgaard-321b0351/">LinkedIn</a></li>
+    
+    <li><a href="https://rweekly.org/">R Weekly</a></li>
+    
+    <li><a href="https://www.r-bloggers.com/">R-bloggers</a></li>
+    
+    <li><a href="https://www.r-users.com/">R-users</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">9 min read</span>
+    
+
+    <h1 class="article-title">Tuning a data preprocessing pipeline with recipes and modelgrid</h1>
+
+    
+    <span class="article-date">2018/09/24</span>
+    
+
+    <div class="article-content">
+      <p>In this post I will demonstrate, how the <a href="https://cran.r-project.org/web/packages/modelgrid/index.html"><code>modelgrid</code></a> package can be used to facilitate experiments with the data preprocessing pipeline of a predictive model.</p>
+<div id="data-preprocessing---an-integral-part-of-a-model-configuration" class="section level2">
+<h2>Data preprocessing - an integral part of a model configuration</h2>
+<p>Model tuning is not just a matter of tuning the hyperparameters of an algorithm. Since data preprocessing is also an integral part of the model development workflow, it is just as relevant to experiment with the data preprocessing pipeline of a model configuration. When “tuning” a model, the data preprocessing pipeline should therefore also be tuned.</p>
+<p>In the following I will present an example of tuning a data preprocessing pipeline using <code>modelgrid</code> in combination with <a href="https://github.com/tidymodels/recipes"><code>recipes</code></a>.</p>
+</div>
+<div id="use-case-cell-segmentation-in-high-content-screening" class="section level2">
+<h2>Use case: Cell Segmentation in High-Content Screening</h2>
+<p>I will use the Cell Segmentation data set described in the excellent book <a href="http://appliedpredictivemodeling.com/"><strong>‘Applied Predictive Modelling’</strong></a> as an example.</p>
+<pre class="r"><code>library(AppliedPredictiveModeling)
+data(segmentationOriginal)</code></pre>
+<p>The data set consists of 2019 samples, where each sample represents a cell. Of these cells, 1300 were judged to be poorly segmented and 719 were well segmented; 1009 cells were reserved for the training set.</p>
+<p>In each cell 116 measurements were taken. They are all available as numeric predictors.</p>
+<p>For more information on the data set look <a href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-8-340">here</a>.</p>
+<p>Our goal is to develop a classification model, that separates the poorly segmented from the well segmented cells.</p>
+<div id="data-at-a-glance" class="section level3">
+<h3>Data at a glance</h3>
+<p>First, let us take a quick look at the data. We will do that by inspecting the between-predictor correlations of the predictors expressed by a correlation matrix of the training data set. The variables are grouped adjacent to each other according to their mutual correlations.</p>
+<pre class="r"><code># Extract training data.
+training &lt;- filter(segmentationOriginal, Case == &quot;Train&quot;)
+
+# Extract predictors.
+predictors &lt;- training %&gt;% select(-(c(&quot;Class&quot;, &quot;Case&quot;, &quot;Cell&quot;))) 
+
+# Identify variables with zero variance.
+zero_variance_predictors &lt;- map_lgl(predictors, ~ n_distinct(.x) == 1)
+
+# Remove predictors with zero variance.
+predictors &lt;- predictors[, !zero_variance_predictors]
+
+# Compute and plot a correlation matrix of remaining predictors.
+library(corrplot)
+predictors %&gt;%
+  cor(.) %&gt;%
+  corrplot(., order = &quot;hclust&quot;, tl.cex = .35)</code></pre>
+<p><img src="/post/2018-09-24-tuning-a-data-preprocessing-pipeline-with-recipes-and-modelgrid_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>From the graph, it seems that there are groups of predictors, that have strong positive correlations (dark blue).</p>
+<p>There can be good reasons for avoiding variables, that are highly correlated, some of them being (as stated in <a href="http://appliedpredictivemodeling.com/"><strong>‘Applied Predictive Modelling’</strong></a>):</p>
+<ul>
+<li>Redundant/highly correlated predictors often add more complexity than information to the model</li>
+<li>Mathematical disadvantages: can result in very unstable models (high variance), numerical errors and inferior predictive performance.</li>
+</ul>
+<p>The aim of my modelling experiments will be to apply different preprocessing techniques in order to mitigate the potential pitfalls of the “collinearity clusters”, that we are observing amongst the field of predictors.</p>
+</div>
+<div id="create-initial-recipe" class="section level3">
+<h3>Create initial recipe</h3>
+<p>First, let us set up a starting point for our data preprocessing pipeline in our modeling experiments. For this purpose I apply the <strong>awesome</strong> <code>recipes</code> package and create a - very basic - recipe, that will serve as an anchor for my model configurations.</p>
+<p>In this recipe I declare the roles of all variables in the data set and state, that variables with zero variances should be removed.</p>
+<pre class="r"><code>library(recipes)
+initial_recipe &lt;- recipe(training) %&gt;%
+  add_role(Class, new_role = &quot;outcome&quot;) %&gt;%
+  add_role(Cell, new_role = &quot;id variable&quot;) %&gt;%
+  add_role(Case, new_role = &quot;splitting indicator&quot;) %&gt;%
+  add_role(-Class, -Cell, -Case, new_role = &quot;predictor&quot;) %&gt;%
+  step_zv(all_predictors())</code></pre>
+<p>You can ‘prep’ the recipe and get an impression of, what it is actually doing. It seems, it removes two of the predictors due to them having variances of zero.</p>
+<pre class="r"><code>prep_rec &lt;- prep(initial_recipe)
+tidy(prep_rec, 1)
+#&gt; # A tibble: 2 x 1
+#&gt;   terms                       
+#&gt;   &lt;chr&gt;                       
+#&gt; 1 MemberAvgAvgIntenStatusCh2  
+#&gt; 2 MemberAvgTotalIntenStatusCh2</code></pre>
+</div>
+<div id="set-up-a-model-grid" class="section level3">
+<h3>Set up a model grid</h3>
+<p>In order to organize and structure my experiments with different data preprocessing pipelines I apply my <a href="https://github.com/smaakage85/modelgrid"><code>modelgrid</code></a> package, that offers <a href="http://smaakage85.netlify.com/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/">a framework for constructing, training and managing multiple <code>caret</code> models</a>.</p>
+<p><code>modelgrid</code> separates the specification of a(ny number of) <code>caret</code> model(s) from the training/estimation of the model(s). By doing so, <code>modelgrid</code> follows the same principles as the new promising package <a href="https://github.com/topepo/parsnip"><code>parsnip</code></a>, which is under construction.</p>
+<p>Assume, that we want to estimate a family of Generalized Linear Models, all with different data preprocessing pipelines. I have decided on the following conditions for the model training:</p>
+<ul>
+<li>Apply a cross-validation resampling scheme with 5 folds.</li>
+<li>Tune the models and measure performance using the standard and highly versatile ‘Area Under the Curve’ (AUC(/ROC)) metric.</li>
+</ul>
+<p>I construct a <strong>model_grid</strong> and set the settings, that by default will apply to all of my models, accordingly.</p>
+<pre class="r"><code>library(modelgrid)
+library(caret)
+
+models &lt;- 
+  # create empty model grid with constructor function.
+  model_grid() %&gt;%
+  # set shared settings, that will apply to all models by default.
+  share_settings(
+    data = training,
+    trControl = trainControl(method = &quot;cv&quot;,
+                             number = 5,
+                             summaryFunction = twoClassSummary,
+                             classProbs = TRUE),
+    metric = &quot;ROC&quot;,
+    method = &quot;glm&quot;,
+    family = binomial(link = &quot;logit&quot;)
+  )</code></pre>
+<p>We are now ready to add individual model specifications, each with their own data preprocessing pipeline to the model grid.</p>
+</div>
+<div id="adding-the-first-model-specifications-to-the-model-grid" class="section level3">
+<h3>Adding the first model specifications to the model grid</h3>
+<p>We will kick things off by adding the first model specification to my model grid. In this configuration I just apply our initial data preprocessing recipe and do no further. I will refer to this model as ‘baseline’.</p>
+<pre class="r"><code>models &lt;- models %&gt;%
+  add_model(model_name = &quot;baseline&quot;, 
+            x = initial_recipe)</code></pre>
+<p>One way of dealing with the potential drawbacks of the observed “collinearity clusters” is to apply a correlation filter. The correlation filter poses a heuristic approach to dealing with highly correlated predictors. It removes the predictors with the highest between-predictor correlations one at a time, until all between-predictor correlations are below some critical threshold.</p>
+<p>In order to do so, I extend my initial recipe with an additional step, that applies the correlation filter. Furthermore I will try out different values for the between-predictor correlation threshold value of the filter, essentially treating it as a hyperparameter.</p>
+<pre class="r"><code>models &lt;- models %&gt;%
+  add_model(model_name = &quot;corr_.7&quot;, 
+            x = initial_recipe %&gt;%
+              step_corr(all_predictors(), threshold = .7)) %&gt;%
+  add_model(model_name = &quot;corr_.8&quot;, 
+            x = initial_recipe %&gt;%
+              step_corr(all_predictors(), threshold = .8)) %&gt;%
+  add_model(model_name = &quot;corr_.9&quot;, 
+            x = initial_recipe %&gt;%
+              step_corr(all_predictors(), threshold = .9))</code></pre>
+<p>The construction of these model specifications can - and indeed should - be parametrized. Especially if you want to try out a wider range of values for the ‘threshold’ parameter than just the three, that I have denoted here.</p>
+<p>Great, now we have a bunch of models specifications. We will train them right away and take a first look at the results.</p>
+<pre class="r"><code># Train models.
+models &lt;- models %&gt;% train(.)
+# Display resampled performance statistics of the fitted models using standard 
+# functionality from the &#39;caret&#39; package.
+models$model_fits %&gt;% resamples(.) %&gt;% bwplot(.)</code></pre>
+<p><img src="/post/2018-09-24-tuning-a-data-preprocessing-pipeline-with-recipes-and-modelgrid_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Judging by the resampled AUC performance statistics it seems, that there <em>could</em> be a case for applying a correlation filter on the set of predictors. Apparently, the model with a correlation filter with a between-predictor correlation threshold value of .7 added to the data preprocessing pipeline yields the best median resampled AUC. Of the four models, this model is by far the least complex.</p>
+<p>We can see this by taking a look at the number of predictors, that were actually used in the final models (after removing variables with a correlation filter (if any)).</p>
+<pre class="r"><code>models$model_fits %&gt;%
+  map(pluck(c(&quot;recipe&quot;, &quot;term_info&quot;, &quot;role&quot;))) %&gt;%
+  map_int(~ sum(.x == &quot;predictor&quot;))
+#&gt; baseline  corr_.7  corr_.8  corr_.9 
+#&gt;      114       60       78       93</code></pre>
+<p>The ‘corr_.7’ model configuration only uses 60 predictors (after removal of highly correlated predictors), hence it only estimates 61 coefficients. In contrast the ‘baseline’ model uses all predictors (except the two variables with zero variances) and estimates 115 coefficients in total making it a much more complex model (by means of a higher variance) and more prone to the risk of overfitting.</p>
+<p>Overall it seems like applying a correlation filter with a correlation threshold value of 0.7 as part of the data preprocessing pipeline could be a good idea.</p>
+</div>
+<div id="dimensionality-reduction-with-pca" class="section level3">
+<h3>Dimensionality reduction with PCA</h3>
+<p>Another approach to dealing with highly correlated predictors is to apply a Principal Component Analysis transformation of the predictors in order to reduce the dimensions of data set. You can read more about the PCA technique <a href="https://www-bcf.usc.edu/~gareth/ISL/ISLR%20First%20Printing.pdf">here</a>.</p>
+<p>This approach can be tested by tweaking my initial data preprocessing recipe once again with a couple of additional steps. Before actually conducting PCA, features are centered and scaled. This is completely standard.</p>
+<p>For the PCA transformation I vary the ‘threshold’ value, which is the fraction of the total variance of the predictors that should be covered by the components. The higher the value of ‘threshold’, the higher the number of components used.</p>
+<pre class="r"><code># Extend recipe with centering and scaling steps.
+rec_center_scale &lt;- initial_recipe %&gt;%
+  step_center(all_predictors()) %&gt;%
+  step_scale(all_predictors())
+
+# Add model specifications with pca for dimensionality reduction.
+models &lt;- models %&gt;%
+  add_model(model_name = &quot;pca_.75&quot;, 
+            x = rec_center_scale %&gt;%
+              step_pca(all_predictors(), threshold = .75)) %&gt;%
+  add_model(model_name = &quot;pca_.85&quot;,
+            x = rec_center_scale %&gt;%
+              step_pca(all_predictors(), threshold = .85)) %&gt;%
+  add_model(model_name = &quot;pca_.95&quot;,
+            x = rec_center_scale %&gt;%
+              step_pca(all_predictors(), threshold = .95))</code></pre>
+<p>Let us train the new model configurations and display the results.</p>
+<pre class="r"><code>models &lt;- train(models)
+models$model_fits %&gt;% caret::resamples(.) %&gt;% bwplot(.)</code></pre>
+<p><img src="/post/2018-09-24-tuning-a-data-preprocessing-pipeline-with-recipes-and-modelgrid_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>Applying a data preprocessing pipeline with a PCA transformation capturing 95 pct. of the total variance of the set of predictors actually returns the highest resampled median value of AUC.</p>
+<p>You can look up, how many principal components that were used in the different model configurations in order to account for the desired amount of total variance of the predictors.</p>
+<pre class="r"><code>models$model_fits[c(&quot;pca_.75&quot;, &quot;pca_.85&quot;, &quot;pca_.95&quot;)] %&gt;%
+  map(pluck(c(&quot;recipe&quot;, &quot;term_info&quot;, &quot;role&quot;))) %&gt;%
+  map_int(~ sum(.x == &quot;predictor&quot;))
+#&gt; pca_.75 pca_.85 pca_.95 
+#&gt;      22      34      58</code></pre>
+<p>To summarize, adding a PCA transformation or a correlation filter to the data preprocessing pipeline seem like good ways of dealing with the “collinearity clusters” in the data set.</p>
+</div>
+</div>
+<div id="conclusions" class="section level2">
+<h2>Conclusions</h2>
+<ul>
+<li>Experimenting with the data preprocessing pipeline can be seen as part of the model tuning process. Parameters of the data preprocessing pipeline can be thought of as tuning parameters.</li>
+<li>These kinds of experiments can be organized and conducted easily using R packages <code>recipes</code> and <code>caret</code> in combination with <code>modelgrid</code>.</li>
+</ul>
+</div>
+<div id="whats-next" class="section level2">
+<h2>What’s next?</h2>
+<p>I have been thinking about how to extend the functionality of <code>modelgrid</code> further in order to:</p>
+<ul>
+<li>Parametrize experiments with the parameters of the data preprocessing pipeline. But actually I was under the impression, that others are working on developing similar functionality for tuning parameters of the data preprocessing pipeline. Am I wrong here?</li>
+<li>Support <code>parsnip</code>.</li>
+<li>To expose models and model configurations from a model grid in a more ‘tidy’ way.</li>
+</ul>
+<p>Best, smaakagen</p>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+
