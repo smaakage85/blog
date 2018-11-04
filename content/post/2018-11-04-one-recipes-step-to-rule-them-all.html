@@ -9,7 +9,6 @@ tags: ["recipes", "framework", "caret", "machine learning", "preprocessing", "mo
 
 
 
-<pre class="r"><code># library(customsteps)</code></pre>
 <div id="an-example" class="section level2">
 <h2>An Example</h2>
 <p>Assume, that we want to transform a variable <span class="math inline">\({\mathbf{x}}\)</span> like this:</p>
@@ -22,8 +21,57 @@ tags: ["recipes", "framework", "caret", "machine learning", "preprocessing", "mo
 <p>where <span class="math inline">\(\bar{\mathbf{x}}\)</span> is the (estimated) mean of <span class="math inline">\(\mathbf{x}\)</span>, and <span class="math inline">\(sd(\mathbf{x})\)</span> is the (estimated) standard deviation of <span class="math inline">\({\mathbf{x}}\)</span>.</p>
 <p>Note, that centering <span class="math inline">\({\mathbf{x}}\)</span> around 0 and scaling it to arrive at a standard deviation of 1 is just a special case of the above transformation with <span class="math inline">\(\alpha = 0, \beta = 1\)</span>.</p>
 </div>
-<div id="create-higher-order-recipes-step" class="section level2">
-<h2>Create Higher Order ‘recipes’ Step</h2>
-<p>To create a specification of a recipe step, that will conduct the above transformation, you can either (1) write an entire <a href="https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd">custom <code>recipes</code> step <strong>from scratch</strong></a>, OR (2) simply apply the <code>step_custom_transformation</code> function.</p>
-<p>Basically <code>step_custom_transformation</code> takes <em>helper functions</em> for the <code>recipes</code> <code>prep</code> and <code>bake</code> methods as inputs and creates a customized <code>step</code> function from them.</p>
+<div id="introducing-the-customsteps-package" class="section level2">
+<h2>Introducing the ‘customsteps’ package</h2>
+<p>To create a specification of a recipe step, that will conduct the above transformation, you can either (1) write an entire <a href="https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd">custom <code>recipes</code> step <strong>from scratch</strong></a>, OR (2) simply apply the <code>customsteps</code> package, that I have just released on CRAN.</p>
+<pre class="r"><code># install.packages(&quot;customsteps&quot;)
+library(customsteps)</code></pre>
+<p><code>customsteps</code> contains a set of customizable higher order <code>recipes</code> <code>step</code> functions, that take <em>helper functions</em> for the <code>recipes</code> <code>prep</code> and <code>bake</code> methods as inputs and creates a customized <code>step</code> function from them. Let me just remind you of the definition of <a href="https://en.wikipedia.org/wiki/Higher-order_function"><strong>higher order functions</strong></a>:</p>
+<blockquote>
+<p><em>In mathematics and computer science, a higher-order function is a function that does at least one of the following: 1. takes one or more functions as arguments, 2. returns a function as its result.</em></p>
+</blockquote>
+<p>Write helper function for <code>prep</code>.</p>
+<pre class="r"><code>library(purrr)
+compute_means_sd &lt;- function(x) {
+
+  map(x, ~ list(mean = mean(.x),
+                sd = sd(.x)))
+
+}</code></pre>
+<p>Write helper function for <code>bake</code>.</p>
+<pre class="r"><code>library(dplyr)
+center_scale &lt;- function(x, prep_output, alpha, beta) {
+
+  newdata &lt;- select(x, names(prep_output))
+
+  map2(.x = newdata,
+       .y = prep_output,
+       ~ alpha + (.x - .y$mean) * beta / .y$sd)
+  
+}</code></pre>
+<p>Generate data.</p>
+<pre class="r"><code>df &lt;- tibble(a = rnorm(1000),
+             b = rnorm(1000),
+             c = rnorm(1000))</code></pre>
+<p>Apply transformation 100, 3.</p>
+<pre class="r"><code>library(recipes)
+rec &lt;- recipe(df) %&gt;%
+  step_custom_transformation(everything(),
+                             prep_function = compute_means_sd,
+                             bake_function = center_scale,
+                             bake_options = list(alpha = 100, beta = 25),
+                             bake_how = &quot;bind_cols&quot;)</code></pre>
+<p>Prep and bake recipe.</p>
+<pre class="r"><code>rec_prep &lt;- prep(rec)
+rec_baked &lt;- bake(rec_prep, df)</code></pre>
+<p>Display results.</p>
+<pre class="r"><code>bind_rows(
+mean = map_dbl(rec_baked, mean),
+sd = map_dbl(rec_baked, sd)
+)
+#&gt; # A tibble: 2 x 6
+#&gt;         a       b      c    a1    b1    c1
+#&gt;     &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1 -0.0154 0.00309 0.0265 100     100 100  
+#&gt; 2  0.980  1.03    1.02    25.0    25  25.0</code></pre>
 </div>

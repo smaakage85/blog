@@ -11,10 +11,6 @@ tags: ["recipes", "framework", "caret", "machine learning", "preprocessing", "mo
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-```{r}
-# library(customsteps)
-```
-
 ## An Example 
 
 Assume, that we want to transform a variable ${\mathbf{x}}$ like this:
@@ -34,10 +30,86 @@ Note, that centering ${\mathbf{x}}$ around 0 and scaling it to arrive at
 a standard deviation of 1 is just a special case of the above transformation
 with $\alpha = 0, \beta = 1$.
 
-## Create Higher Order 'recipes' Step
+## Introducing the 'customsteps' package
 
 To create a specification of a recipe step, that will conduct the above
-transformation, you can either (1) write an entire [custom `recipes` step 
-**from scratch**](https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd), OR (2) simply apply the `step_custom_transformation` function. 
+transformation, you can either (1) write an entire [custom `recipes` step **from
+scratch**](https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd),
+OR (2) simply apply the `customsteps` package, that I have just released on
+CRAN.
 
-Basically `step_custom_transformation` takes *helper functions* for the `recipes` `prep` and `bake` methods as inputs and creates a customized `step` function from them. 
+```{r, message = FALSE, warning = FALSE}
+# install.packages("customsteps")
+library(customsteps)
+```
+
+`customsteps` contains a set of customizable higher order `recipes` `step`
+functions, that take *helper functions* for the `recipes` `prep` and `bake`
+methods as inputs and creates a customized `step` function from them. Let me
+just remind you of the definition of [**higher order functions**](https://en.wikipedia.org/wiki/Higher-order_function):
+
+> *In mathematics and computer science, a higher-order function is a function that does at least one of the  following: 1. takes one or more functions as arguments,
+2. returns a function as its result.*
+
+Write helper function for `prep`.
+
+```{r, message = FALSE, warning = FALSE}
+library(purrr)
+compute_means_sd <- function(x) {
+
+  map(x, ~ list(mean = mean(.x),
+                sd = sd(.x)))
+
+}
+```
+
+Write helper function for `bake`.
+
+```{r, message = FALSE, warning = FALSE}
+library(dplyr)
+center_scale <- function(x, prep_output, alpha, beta) {
+
+  newdata <- select(x, names(prep_output))
+
+  map2(.x = newdata,
+       .y = prep_output,
+       ~ alpha + (.x - .y$mean) * beta / .y$sd)
+  
+}
+```
+
+Generate data.
+
+```{r, message = FALSE, warning = FALSE}
+df <- tibble(a = rnorm(1000),
+             b = rnorm(1000),
+             c = rnorm(1000))
+```
+
+Apply transformation 100, 3.
+
+```{r, message = FALSE, warning = FALSE}
+library(recipes)
+rec <- recipe(df) %>%
+  step_custom_transformation(everything(),
+                             prep_function = compute_means_sd,
+                             bake_function = center_scale,
+                             bake_options = list(alpha = 100, beta = 25),
+                             bake_how = "bind_cols")
+```
+
+Prep and bake recipe.
+
+```{r, message = FALSE, warning = FALSE}
+rec_prep <- prep(rec)
+rec_baked <- bake(rec_prep, df)
+```
+
+Display results.
+
+```{r}
+bind_rows(
+mean = map_dbl(rec_baked, mean),
+sd = map_dbl(rec_baked, sd)
+)
+```
