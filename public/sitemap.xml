@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>/2018/11/04/one-recipes-step-to-rule-them-all/</loc>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/2018/09/24/tuning-a-data-preprocessing-pipeline-with-recipes-and-modelgrid/</loc>
     <lastmod>2018-09-24T00:00:00+00:00</lastmod>
   </url>
@@ -19,7 +24,7 @@
   
   <url>
     <loc>/tags/caret/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -30,19 +35,19 @@
   
   <url>
     <loc>/tags/framework/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/machine-learning/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/modelgrid/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -54,43 +59,43 @@
   
   <url>
     <loc>/post/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/predictive-modeling/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/preprocessing/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/categories/r/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/recipes/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/</loc>
-    <lastmod>2018-09-24T00:00:00+00:00</lastmod>
+    <lastmod>2018-11-04T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   

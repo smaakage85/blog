@@ -19,6 +19,8 @@ tags: ["recipes", "framework", "caret", "machine learning", "preprocessing", "mo
 <h2>Use case: Cell Segmentation in High-Content Screening</h2>
 <p>I will use the Cell Segmentation data set described in the excellent book <a href="http://appliedpredictivemodeling.com/"><strong>‘Applied Predictive Modelling’</strong></a> as an example.</p>
 <pre class="r"><code>library(AppliedPredictiveModeling)
+#&gt; Warning: pakke &#39;AppliedPredictiveModeling&#39; blev bygget under R version
+#&gt; 3.5.1
 data(segmentationOriginal)</code></pre>
 <p>The data set consists of 2019 samples, where each sample represents a cell. Of these cells, 1300 were judged to be poorly segmented and 719 were well segmented; 1009 cells were reserved for the training set.</p>
 <p>In each cell 116 measurements were taken. They are all available as numeric predictors.</p>
@@ -67,11 +69,11 @@ initial_recipe &lt;- recipe(training) %&gt;%
 <p>You can ‘prep’ the recipe and get an impression of, what it is actually doing. It seems, it removes two of the predictors due to them having variances of zero.</p>
 <pre class="r"><code>prep_rec &lt;- prep(initial_recipe)
 tidy(prep_rec, 1)
-#&gt; # A tibble: 2 x 1
-#&gt;   terms                       
-#&gt;   &lt;chr&gt;                       
-#&gt; 1 MemberAvgAvgIntenStatusCh2  
-#&gt; 2 MemberAvgTotalIntenStatusCh2</code></pre>
+#&gt; # A tibble: 2 x 2
+#&gt;   terms                        id      
+#&gt;   &lt;chr&gt;                        &lt;chr&gt;   
+#&gt; 1 MemberAvgAvgIntenStatusCh2   zv_zzv5V
+#&gt; 2 MemberAvgTotalIntenStatusCh2 zv_zzv5V</code></pre>
 </div>
 <div id="set-up-a-model-grid" class="section level3">
 <h3>Set up a model grid</h3>

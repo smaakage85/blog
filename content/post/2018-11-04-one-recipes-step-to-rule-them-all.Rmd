@@ -1,0 +1,43 @@
+---
+title: One 'recipes' Step to Rule Them All
+author: Lars Kjeldgaard
+date: '2018-11-04'
+slug: one-recipes-step-to-rule-them-all
+categories: ["R"]
+tags: ["recipes", "framework", "caret", "machine learning", "preprocessing", "modelgrid", "predictive modeling"]
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r}
+# library(customsteps)
+```
+
+## An Example 
+
+Assume, that we want to transform a variable ${\mathbf{x}}$ like this:
+
+1. Center ${\mathbf{x}}$ around an arbitrary number $\alpha$.
+2. Scale the transformed variable, such that its standard deviation equals an 
+arbitrary number $\beta$.
+
+The transformed variable $\hat{\mathbf{x}}$ can be derived as:
+
+$\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{sd(\mathbf{x})}$
+
+where $\bar{\mathbf{x}}$ is the (estimated) mean of $\mathbf{x}$, and 
+$sd(\mathbf{x})$ is the (estimated) standard deviation of ${\mathbf{x}}$.
+
+Note, that centering ${\mathbf{x}}$ around 0 and scaling it to arrive at
+a standard deviation of 1 is just a special case of the above transformation
+with $\alpha = 0, \beta = 1$.
+
+## Create Higher Order 'recipes' Step
+
+To create a specification of a recipe step, that will conduct the above
+transformation, you can either (1) write an entire [custom `recipes` step 
+**from scratch**](https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd), OR (2) simply apply the `step_custom_transformation` function. 
+
+Basically `step_custom_transformation` takes *helper functions* for the `recipes` `prep` and `bake` methods as inputs and creates a customized `step` function from them. 

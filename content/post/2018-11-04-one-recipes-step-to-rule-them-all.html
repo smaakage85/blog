@@ -1,0 +1,29 @@
+---
+title: One 'recipes' Step to Rule Them All
+author: Lars Kjeldgaard
+date: '2018-11-04'
+slug: one-recipes-step-to-rule-them-all
+categories: ["R"]
+tags: ["recipes", "framework", "caret", "machine learning", "preprocessing", "modelgrid", "predictive modeling"]
+---
+
+
+
+<pre class="r"><code># library(customsteps)</code></pre>
+<div id="an-example" class="section level2">
+<h2>An Example</h2>
+<p>Assume, that we want to transform a variable <span class="math inline">\({\mathbf{x}}\)</span> like this:</p>
+<ol style="list-style-type: decimal">
+<li>Center <span class="math inline">\({\mathbf{x}}\)</span> around an arbitrary number <span class="math inline">\(\alpha\)</span>.</li>
+<li>Scale the transformed variable, such that its standard deviation equals an arbitrary number <span class="math inline">\(\beta\)</span>.</li>
+</ol>
+<p>The transformed variable <span class="math inline">\(\hat{\mathbf{x}}\)</span> can be derived as:</p>
+<p><span class="math inline">\(\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{sd(\mathbf{x})}\)</span></p>
+<p>where <span class="math inline">\(\bar{\mathbf{x}}\)</span> is the (estimated) mean of <span class="math inline">\(\mathbf{x}\)</span>, and <span class="math inline">\(sd(\mathbf{x})\)</span> is the (estimated) standard deviation of <span class="math inline">\({\mathbf{x}}\)</span>.</p>
+<p>Note, that centering <span class="math inline">\({\mathbf{x}}\)</span> around 0 and scaling it to arrive at a standard deviation of 1 is just a special case of the above transformation with <span class="math inline">\(\alpha = 0, \beta = 1\)</span>.</p>
+</div>
+<div id="create-higher-order-recipes-step" class="section level2">
+<h2>Create Higher Order ‘recipes’ Step</h2>
+<p>To create a specification of a recipe step, that will conduct the above transformation, you can either (1) write an entire <a href="https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd">custom <code>recipes</code> step <strong>from scratch</strong></a>, OR (2) simply apply the <code>step_custom_transformation</code> function.</p>
+<p>Basically <code>step_custom_transformation</code> takes <em>helper functions</em> for the <code>recipes</code> <code>prep</code> and <code>bake</code> methods as inputs and creates a customized <code>step</code> function from them.</p>
+</div>
