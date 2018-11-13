@@ -13,26 +13,30 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 In this post I will demonstrate, how my new R package `customsteps` can be used to generate `recipes` steps, that apply custom transformations to a data set. 
 
+Note, you should already be fairly familiar with the `recipes` package 
+before reading this post or giving `customsteps` a spin!
+
 ## Introducing the 'customsteps' package
 
-If you want to apply a transformation to your data set not included in the pre-specified steps, that come with the `recipes` package, you have two options. You could write an entire [custom `recipes` step **from
-scratch**](https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd) - this takes quite a bit of work and coding. Or you could just apply the `customsteps` package, that I have just released on CRAN.
+If you want to apply a transformation to your data set, that is not supported by the pre-specified steps, that come along with the `recipes` package distribution, you have two options. You could write an entire [custom `recipes` step **from
+scratch**](https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd), that conducts the specific transformation. This however takes quite a bit of work and code. An alternative - and sometimes better - approach is to apply the `customsteps` package, that I have just released on CRAN.
 
 ```{r, message = FALSE, warning = FALSE}
 # install.packages("customsteps")
 library(customsteps)
 ```
 
-### Customizable Higher Order Steps
+### Customizable Higher-Order Steps
 
-`customsteps` contains a set of customizable higher order `recipes` `step`
-functions, that take *helper functions* for the `recipes` `prep` and `bake`
-methods as inputs and creates a customized `step` function from them. Let me
-just remind you of the definition of [**higher order functions**](https://en.wikipedia.org/wiki/Higher-order_function):
+`customsteps` contains a set of customizable higher-order `recipes` `step`
+functions, that create specifications of recipe steps, that will transform or filter the data in accordance with the input functions. Let me just remind you of the definition of [**higher-order functions**](https://en.wikipedia.org/wiki/Higher-order_function):
 
 > *In mathematics and computer science, a higher-order function is a function that does at least one of the  following: 1. takes one or more functions as arguments,
 2. returns a function as its result.*
-## An Example 
+
+In the following I will present an example of how to use the `step_custom_transformation` function from the `customsteps` package in order to create a specification of a recipe step, that will apply a custom transformation on a data set.
+
+## Use Case: Centering and Scaling Numeric Data
 
 Assume, that we want to transform a variable ${\mathbf{x}}$ like this:
 
@@ -40,37 +44,48 @@ Assume, that we want to transform a variable ${\mathbf{x}}$ like this:
 2. Scale the transformed variable, such that its standard deviation equals an 
 arbitrary number $\beta$.
 
-The transformed variable $\hat{\mathbf{x}}$ can be derived as:
+The transformed variable $\hat{\mathbf{x}}$ can then be derived as:
 
 $\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{s_\mathbf{x}}$
 
-where $\bar{\mathbf{x}}$ is the (estimated) mean of $\mathbf{x}$, and 
-$s_\mathbf{x}$ is the (estimated) standard deviation of ${\mathbf{x}}$.
+where $\bar{\mathbf{x}}$ is the mean of $\mathbf{x}$, and 
+$s_\mathbf{x}$ is the standard deviation of ${\mathbf{x}}$.
 
-Note, that centering ${\mathbf{x}}$ around 0 and scaling it to arrive at
+**Note**, that centering ${\mathbf{x}}$ around 0 and scaling it to arrive at
 a standard deviation of 1 is just a special case of the above transformation
 with $\alpha = 0, \beta = 1$.
 
-Write helper function for `prep`.
+### Helper Function for the `prep` method
+
+If the transformation requires learning parameters from the 'training data', one has to define a helper function for the `prep` method of `step_custom_transformation`. The job of this function is to learn the parameters, that will be used to transform a new data set. 
+
+Obviously, the above transformation requires the mean $\bar{\mathbf{x}}$ and standard deviation $s_\mathbf{x}$ to be learned from the 'training data'. Therefore we will write a function `compute_means_sd`, that takes an argument `x` - the 'training data' - as input and learns the two parameters for each variable.
 
 ```{r, message = FALSE, warning = FALSE}
 library(purrr)
-compute_means_sd <- function(x) {
 
-  map(x, ~ list(mean = mean(.x),
-                sd = sd(.x)))
+compute_means_sd <- function(x) {
+  
+  map(.x = x, ~ list(mean = mean(.x), sd = sd(.x)))
 
 }
 ```
 
-Write helper function for `bake`.
+Great, we are halfway there!
+
+### Helper Function for the `bake` method
+
+Likewise we have to specify a helper function for the `bake` method for
+`step_custom_transformation`, that defines the transformation itself and how it should be applied to a new dataset using the parameters learned from the 'training data'.
 
 ```{r, message = FALSE, warning = FALSE}
 library(dplyr)
 center_scale <- function(x, prep_output, alpha, beta) {
 
+  # extract only the relevant variables from the new data set.
   newdata <- select(x, names(prep_output))
 
+  # apply transformation on each of these variables.
   map2(.x = newdata,
        .y = prep_output,
        ~ alpha + (.x - .y$mean) * beta / .y$sd)
@@ -78,20 +93,12 @@ center_scale <- function(x, prep_output, alpha, beta) {
 }
 ```
 
-Generate data.
-
-```{r, message = FALSE, warning = FALSE}
-df <- tibble(a = rnorm(1000),
-             b = rnorm(1000),
-             c = rnorm(1000))
-```
-
-Apply transformation 100, 3.
+We are all set to create a recipe drawing on the new transformation for the `mtcars` data set.
 
 ```{r, message = FALSE, warning = FALSE}
 library(recipes)
-rec <- recipe(df) %>%
-  step_custom_transformation(everything(),
+rec <- recipe(mtcars) %>%
+  step_custom_transformation(mpg, disp, hp,
                              prep_function = compute_means_sd,
                              bake_function = center_scale,
                              bake_options = list(alpha = 100, beta = 25),
@@ -102,7 +109,7 @@ Prep and bake recipe.
 
 ```{r, message = FALSE, warning = FALSE}
 rec_prep <- prep(rec)
-rec_baked <- bake(rec_prep, df)
+rec_baked <- bake(rec_prep, mtcars)
 ```
 
 Display results.
