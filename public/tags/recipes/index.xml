@@ -17,27 +17,27 @@
       <pubDate>Sun, 04 Nov 2018 00:00:00 +0000</pubDate>
       
       <guid>/2018/11/04/one-recipes-step-to-rule-them-all/</guid>
-      <description>&lt;div id=&#34;an-example&#34; class=&#34;section level2&#34;&gt;
-&lt;h2&gt;An Example&lt;/h2&gt;
+      <description>&lt;p&gt;In this post I will demonstrate, how my new R package &lt;code&gt;customsteps&lt;/code&gt; can be used to generate &lt;code&gt;recipes&lt;/code&gt; steps, that apply custom transformations to a data set.&lt;/p&gt;
+&lt;div id=&#34;introducing-the-customsteps-package&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introducing the ‘customsteps’ package&lt;/h2&gt;
+&lt;p&gt;If you want to apply a transformation to your data set not included in the pre-specified steps, that come with the &lt;code&gt;recipes&lt;/code&gt; package, you have two options. You could write an entire &lt;a href=&#34;https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd&#34;&gt;custom &lt;code&gt;recipes&lt;/code&gt; step &lt;strong&gt;from scratch&lt;/strong&gt;&lt;/a&gt; - this takes quite a bit of work and coding. Or you could just apply the &lt;code&gt;customsteps&lt;/code&gt; package, that I have just released on CRAN.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# install.packages(&amp;quot;customsteps&amp;quot;)
+library(customsteps)&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;customizable-higher-order-steps&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Customizable Higher Order Steps&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;customsteps&lt;/code&gt; contains a set of customizable higher order &lt;code&gt;recipes&lt;/code&gt; &lt;code&gt;step&lt;/code&gt; functions, that take &lt;em&gt;helper functions&lt;/em&gt; for the &lt;code&gt;recipes&lt;/code&gt; &lt;code&gt;prep&lt;/code&gt; and &lt;code&gt;bake&lt;/code&gt; methods as inputs and creates a customized &lt;code&gt;step&lt;/code&gt; function from them. Let me just remind you of the definition of &lt;a href=&#34;https://en.wikipedia.org/wiki/Higher-order_function&#34;&gt;&lt;strong&gt;higher order functions&lt;/strong&gt;&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;In mathematics and computer science, a higher-order function is a function that does at least one of the following: 1. takes one or more functions as arguments, 2. returns a function as its result.&lt;/em&gt; ## An Example&lt;/p&gt;
+&lt;/blockquote&gt;
 &lt;p&gt;Assume, that we want to transform a variable &lt;span class=&#34;math inline&#34;&gt;\({\mathbf{x}}\)&lt;/span&gt; like this:&lt;/p&gt;
 &lt;ol style=&#34;list-style-type: decimal&#34;&gt;
 &lt;li&gt;Center &lt;span class=&#34;math inline&#34;&gt;\({\mathbf{x}}\)&lt;/span&gt; around an arbitrary number &lt;span class=&#34;math inline&#34;&gt;\(\alpha\)&lt;/span&gt;.&lt;/li&gt;
 &lt;li&gt;Scale the transformed variable, such that its standard deviation equals an arbitrary number &lt;span class=&#34;math inline&#34;&gt;\(\beta\)&lt;/span&gt;.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;The transformed variable &lt;span class=&#34;math inline&#34;&gt;\(\hat{\mathbf{x}}\)&lt;/span&gt; can be derived as:&lt;/p&gt;
-&lt;p&gt;&lt;span class=&#34;math inline&#34;&gt;\(\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{sd(\mathbf{x})}\)&lt;/span&gt;&lt;/p&gt;
-&lt;p&gt;where &lt;span class=&#34;math inline&#34;&gt;\(\bar{\mathbf{x}}\)&lt;/span&gt; is the (estimated) mean of &lt;span class=&#34;math inline&#34;&gt;\(\mathbf{x}\)&lt;/span&gt;, and &lt;span class=&#34;math inline&#34;&gt;\(sd(\mathbf{x})\)&lt;/span&gt; is the (estimated) standard deviation of &lt;span class=&#34;math inline&#34;&gt;\({\mathbf{x}}\)&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math inline&#34;&gt;\(\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{s_\mathbf{x}}\)&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;where &lt;span class=&#34;math inline&#34;&gt;\(\bar{\mathbf{x}}\)&lt;/span&gt; is the (estimated) mean of &lt;span class=&#34;math inline&#34;&gt;\(\mathbf{x}\)&lt;/span&gt;, and &lt;span class=&#34;math inline&#34;&gt;\(s_\mathbf{x}\)&lt;/span&gt; is the (estimated) standard deviation of &lt;span class=&#34;math inline&#34;&gt;\({\mathbf{x}}\)&lt;/span&gt;.&lt;/p&gt;
 &lt;p&gt;Note, that centering &lt;span class=&#34;math inline&#34;&gt;\({\mathbf{x}}\)&lt;/span&gt; around 0 and scaling it to arrive at a standard deviation of 1 is just a special case of the above transformation with &lt;span class=&#34;math inline&#34;&gt;\(\alpha = 0, \beta = 1\)&lt;/span&gt;.&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id=&#34;introducing-the-customsteps-package&#34; class=&#34;section level2&#34;&gt;
-&lt;h2&gt;Introducing the ‘customsteps’ package&lt;/h2&gt;
-&lt;p&gt;To create a specification of a recipe step, that will conduct the above transformation, you can either (1) write an entire &lt;a href=&#34;https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd&#34;&gt;custom &lt;code&gt;recipes&lt;/code&gt; step &lt;strong&gt;from scratch&lt;/strong&gt;&lt;/a&gt;, OR (2) simply apply the &lt;code&gt;customsteps&lt;/code&gt; package, that I have just released on CRAN.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# install.packages(&amp;quot;customsteps&amp;quot;)
-library(customsteps)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;code&gt;customsteps&lt;/code&gt; contains a set of customizable higher order &lt;code&gt;recipes&lt;/code&gt; &lt;code&gt;step&lt;/code&gt; functions, that take &lt;em&gt;helper functions&lt;/em&gt; for the &lt;code&gt;recipes&lt;/code&gt; &lt;code&gt;prep&lt;/code&gt; and &lt;code&gt;bake&lt;/code&gt; methods as inputs and creates a customized &lt;code&gt;step&lt;/code&gt; function from them. Let me just remind you of the definition of &lt;a href=&#34;https://en.wikipedia.org/wiki/Higher-order_function&#34;&gt;&lt;strong&gt;higher order functions&lt;/strong&gt;&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;&lt;em&gt;In mathematics and computer science, a higher-order function is a function that does at least one of the following: 1. takes one or more functions as arguments, 2. returns a function as its result.&lt;/em&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
 &lt;p&gt;Write helper function for &lt;code&gt;prep&lt;/code&gt;.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(purrr)
 compute_means_sd &amp;lt;- function(x) {
@@ -78,10 +78,11 @@ mean = map_dbl(rec_baked, mean),
 sd = map_dbl(rec_baked, sd)
 )
 #&amp;gt; # A tibble: 2 x 6
-#&amp;gt;         a       b      c    a1    b1    c1
-#&amp;gt;     &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;
-#&amp;gt; 1 -0.0154 0.00309 0.0265 100     100 100  
-#&amp;gt; 2  0.980  1.03    1.02    25.0    25  25.0&lt;/code&gt;&lt;/pre&gt;
+#&amp;gt;        a      b      c    a1    b1    c1
+#&amp;gt;    &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;
+#&amp;gt; 1 0.0459 0.0264 0.0242  100   100   100 
+#&amp;gt; 2 1.01   0.953  0.962    25.   25.   25.&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
 &lt;/div&gt;
 </description>
     </item>
@@ -155,8 +156,8 @@ tidy(prep_rec, 1)
 #&amp;gt; # A tibble: 2 x 2
 #&amp;gt;   terms                        id      
 #&amp;gt;   &amp;lt;chr&amp;gt;                        &amp;lt;chr&amp;gt;   
-#&amp;gt; 1 MemberAvgAvgIntenStatusCh2   zv_bnMA4
-#&amp;gt; 2 MemberAvgTotalIntenStatusCh2 zv_bnMA4&lt;/code&gt;&lt;/pre&gt;
+#&amp;gt; 1 MemberAvgAvgIntenStatusCh2   zv_kDdF1
+#&amp;gt; 2 MemberAvgTotalIntenStatusCh2 zv_kDdF1&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 &lt;div id=&#34;set-up-a-model-grid&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;Set up a model grid&lt;/h3&gt;

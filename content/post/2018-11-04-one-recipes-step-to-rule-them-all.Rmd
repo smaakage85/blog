@@ -11,6 +11,27 @@ tags: ["recipes", "framework", "caret", "machine learning", "preprocessing", "mo
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
+In this post I will demonstrate, how my new R package `customsteps` can be used to generate `recipes` steps, that apply custom transformations to a data set. 
+
+## Introducing the 'customsteps' package
+
+If you want to apply a transformation to your data set not included in the pre-specified steps, that come with the `recipes` package, you have two options. You could write an entire [custom `recipes` step **from
+scratch**](https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd) - this takes quite a bit of work and coding. Or you could just apply the `customsteps` package, that I have just released on CRAN.
+
+```{r, message = FALSE, warning = FALSE}
+# install.packages("customsteps")
+library(customsteps)
+```
+
+### Customizable Higher Order Steps
+
+`customsteps` contains a set of customizable higher order `recipes` `step`
+functions, that take *helper functions* for the `recipes` `prep` and `bake`
+methods as inputs and creates a customized `step` function from them. Let me
+just remind you of the definition of [**higher order functions**](https://en.wikipedia.org/wiki/Higher-order_function):
+
+> *In mathematics and computer science, a higher-order function is a function that does at least one of the  following: 1. takes one or more functions as arguments,
+2. returns a function as its result.*
 ## An Example 
 
 Assume, that we want to transform a variable ${\mathbf{x}}$ like this:
@@ -21,35 +42,14 @@ arbitrary number $\beta$.
 
 The transformed variable $\hat{\mathbf{x}}$ can be derived as:
 
-$\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{sd(\mathbf{x})}$
+$\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{s_\mathbf{x}}$
 
 where $\bar{\mathbf{x}}$ is the (estimated) mean of $\mathbf{x}$, and 
-$sd(\mathbf{x})$ is the (estimated) standard deviation of ${\mathbf{x}}$.
+$s_\mathbf{x}$ is the (estimated) standard deviation of ${\mathbf{x}}$.
 
 Note, that centering ${\mathbf{x}}$ around 0 and scaling it to arrive at
 a standard deviation of 1 is just a special case of the above transformation
 with $\alpha = 0, \beta = 1$.
-
-## Introducing the 'customsteps' package
-
-To create a specification of a recipe step, that will conduct the above
-transformation, you can either (1) write an entire [custom `recipes` step **from
-scratch**](https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd),
-OR (2) simply apply the `customsteps` package, that I have just released on
-CRAN.
-
-```{r, message = FALSE, warning = FALSE}
-# install.packages("customsteps")
-library(customsteps)
-```
-
-`customsteps` contains a set of customizable higher order `recipes` `step`
-functions, that take *helper functions* for the `recipes` `prep` and `bake`
-methods as inputs and creates a customized `step` function from them. Let me
-just remind you of the definition of [**higher order functions**](https://en.wikipedia.org/wiki/Higher-order_function):
-
-> *In mathematics and computer science, a higher-order function is a function that does at least one of the  following: 1. takes one or more functions as arguments,
-2. returns a function as its result.*
 
 Write helper function for `prep`.
 
