@@ -57,9 +57,9 @@ with $\alpha = 0, \beta = 1$.
 
 ### Helper Function for the `prep` method
 
-If the transformation requires learning parameters from the 'training data', one has to define a helper function for the `prep` method of `step_custom_transformation`. The job of this function is to learn the parameters, that will be used to transform a new data set. 
+If the transformation requires learning parameters from the 'training data', one has to define a helper function for the `prep` method of `step_custom_transformation`. The job of the this function is - through the `prep` method - to learn the parameters, that will be used to transform a new data set. 
 
-Obviously, the above transformation requires the mean $\bar{\mathbf{x}}$ and standard deviation $s_\mathbf{x}$ to be learned from the 'training data'. Therefore we will write a function `compute_means_sd`, that takes an argument `x` - the 'training data' - as input and learns the two parameters for each variable.
+Obviously, the above transformation requires the mean $\bar{\mathbf{x}}$ and standard deviation $s_\mathbf{x}$ to be learned from the training data. Therefore I will write a function `compute_means_sd`, that learns the two parameters for (an arbitrary number of) numeric variables. By convention the helper function must take the argument 'x': the subset of selected variables from the training data.
 
 ```{r, message = FALSE, warning = FALSE}
 library(purrr)
@@ -70,7 +70,6 @@ compute_means_sd <- function(x) {
 
 }
 ```
-
 Great, we are halfway there!
 
 ### Helper Function for the `bake` method
