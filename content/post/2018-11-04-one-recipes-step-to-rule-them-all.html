@@ -10,7 +10,7 @@ tags: ["recipes", "framework", "caret", "machine learning", "preprocessing", "mo
 
 
 <p>In this post I will demonstrate, how my new R package <code>customsteps</code> can be used to generate <code>recipes</code> steps, that apply custom transformations to a data set.</p>
-<p>Note, you should already be fairly familiar with the <code>recipes</code> package before reading this post or giving <code>customsteps</code> a spin!</p>
+<p>Note, you should already be fairly familiar with the <code>recipes</code> package before continue reading this post or giving <code>customsteps</code> a spin!</p>
 <div id="introducing-the-customsteps-package" class="section level2">
 <h2>Introducing the ‘customsteps’ package</h2>
 <p>If you want to apply a transformation to your data set, that is not supported by the pre-specified steps, that come along with the <code>recipes</code> package distribution, you have two options. You could write an entire <a href="https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd">custom <code>recipes</code> step <strong>from scratch</strong></a>, that conducts the specific transformation. This however takes quite a bit of work and code. An alternative - and sometimes better - approach is to apply the <code>customsteps</code> package, that I have just released on CRAN.</p>
@@ -38,8 +38,8 @@ library(customsteps)</code></pre>
 <p><strong>Note</strong>, that centering <span class="math inline">\({\mathbf{x}}\)</span> around 0 and scaling it to arrive at a standard deviation of 1 is just a special case of the above transformation with <span class="math inline">\(\alpha = 0, \beta = 1\)</span>.</p>
 <div id="helper-function-for-the-prep-method" class="section level3">
 <h3>Helper Function for the <code>prep</code> method</h3>
-<p>If the transformation requires learning parameters from the ‘training data’, one has to define a helper function for the <code>prep</code> method of <code>step_custom_transformation</code>. The job of this function is to learn the parameters, that will be used to transform a new data set.</p>
-<p>Obviously, the above transformation requires the mean <span class="math inline">\(\bar{\mathbf{x}}\)</span> and standard deviation <span class="math inline">\(s_\mathbf{x}\)</span> to be learned from the ‘training data’. Therefore we will write a function <code>compute_means_sd</code>, that takes an argument <code>x</code> - the ‘training data’ - as input and learns the two parameters for each variable.</p>
+<p>If the transformation requires learning parameters from the ‘training data’, one has to define a helper function for the <code>prep</code> method of <code>step_custom_transformation</code>. The job of the this function is - through the <code>prep</code> method - to learn the parameters, that will be used to transform a new data set.</p>
+<p>Obviously, the above transformation requires the mean <span class="math inline">\(\bar{\mathbf{x}}\)</span> and standard deviation <span class="math inline">\(s_\mathbf{x}\)</span> to be learned from the training data. Therefore I will write a function <code>compute_means_sd</code>, that learns the two parameters for (an arbitrary number of) numeric variables. By convention the helper function must take the argument <code>x</code>: the subset of selected variables from the training data.</p>
 <pre class="r"><code>library(purrr)
 
 compute_means_sd &lt;- function(x) {
@@ -47,13 +47,45 @@ compute_means_sd &lt;- function(x) {
   map(.x = x, ~ list(mean = mean(.x), sd = sd(.x)))
 
 }</code></pre>
-<p>Great, we are halfway there!</p>
+<p>Let us first see the function in action.</p>
+<pre class="r"><code>library(dplyr)
+#&gt; 
+#&gt; Vedhæfter pakke: &#39;dplyr&#39;
+#&gt; De følgende objekter er maskerede fra &#39;package:stats&#39;:
+#&gt; 
+#&gt;     filter, lag
+#&gt; De følgende objekter er maskerede fra &#39;package:base&#39;:
+#&gt; 
+#&gt;     intersect, setdiff, setequal, union
+cars %&gt;%
+  select(speed, dist) %&gt;%
+  compute_means_sd(.)
+#&gt; $speed
+#&gt; $speed$mean
+#&gt; [1] 15.4
+#&gt; 
+#&gt; $speed$sd
+#&gt; [1] 5.287644
+#&gt; 
+#&gt; 
+#&gt; $dist
+#&gt; $dist$mean
+#&gt; [1] 42.98
+#&gt; 
+#&gt; $dist$sd
+#&gt; [1] 25.76938</code></pre>
+<p>It works like a charm. Great, we are halfway there!</p>
 </div>
 <div id="helper-function-for-the-bake-method" class="section level3">
 <h3>Helper Function for the <code>bake</code> method</h3>
-<p>Likewise we have to specify a helper function for the <code>bake</code> method for <code>step_custom_transformation</code>, that defines the transformation itself and how it should be applied to a new dataset using the parameters learned from the ‘training data’.</p>
-<pre class="r"><code>library(dplyr)
-center_scale &lt;- function(x, prep_output, alpha, beta) {
+<p>Likewise we have to specify a helper function for the <code>bake</code> method for <code>step_custom_transformation</code>. In general the <code>bake</code> method of a recipe step defines, how it applies to a new data set.</p>
+<p>The <code>bake</code> helper function for <code>step_custom_transformation</code> defines, how a new data set is transformed using the parameters learned from the ‘training data’.</p>
+<p>By convention the helper function must take the arguments:</p>
+<ul>
+<li><code>x</code>: the new data, that the step will be applied.</li>
+<li><code>prep_output</code>: the output from <code>prep</code> helper function, which should contain any parameters learned on the ‘training data’.</li>
+</ul>
+<pre class="r"><code>center_scale &lt;- function(x, prep_output, alpha, beta) {
 
   # extract only the relevant variables from the new data set.
   newdata &lt;- select(x, names(prep_output))

@@ -14,7 +14,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 In this post I will demonstrate, how my new R package `customsteps` can be used to generate `recipes` steps, that apply custom transformations to a data set. 
 
 Note, you should already be fairly familiar with the `recipes` package 
-before reading this post or giving `customsteps` a spin!
+before continue reading this post or giving `customsteps` a spin!
 
 ## Introducing the 'customsteps' package
 
@@ -59,7 +59,7 @@ with $\alpha = 0, \beta = 1$.
 
 If the transformation requires learning parameters from the 'training data', one has to define a helper function for the `prep` method of `step_custom_transformation`. The job of the this function is - through the `prep` method - to learn the parameters, that will be used to transform a new data set. 
 
-Obviously, the above transformation requires the mean $\bar{\mathbf{x}}$ and standard deviation $s_\mathbf{x}$ to be learned from the training data. Therefore I will write a function `compute_means_sd`, that learns the two parameters for (an arbitrary number of) numeric variables. By convention the helper function must take the argument 'x': the subset of selected variables from the training data.
+Obviously, the above transformation requires the mean $\bar{\mathbf{x}}$ and standard deviation $s_\mathbf{x}$ to be learned from the training data. Therefore I will write a function `compute_means_sd`, that learns the two parameters for (an arbitrary number of) numeric variables. By convention the helper function must take the argument `x`: the subset of selected variables from the training data.
 
 ```{r, message = FALSE, warning = FALSE}
 library(purrr)
@@ -70,15 +70,34 @@ compute_means_sd <- function(x) {
 
 }
 ```
-Great, we are halfway there!
+
+Let us first see the function in action.
+
+```{r}
+library(dplyr)
+cars %>%
+  select(speed, dist) %>%
+  compute_means_sd(.)
+```
+
+It works like a charm. Great, we are halfway there!
 
 ### Helper Function for the `bake` method
 
 Likewise we have to specify a helper function for the `bake` method for
-`step_custom_transformation`, that defines the transformation itself and how it should be applied to a new dataset using the parameters learned from the 'training data'.
+`step_custom_transformation`. In general the `bake` method of a recipe step 
+defines, how it applies to a new data set. 
+
+The `bake` helper function for `step_custom_transformation` defines, how a new
+data set is transformed using the parameters learned from the 'training data'.
+
+By convention the helper function must take the arguments:
+
+* `x`: the new data, that the step will be applied.
+* `prep_output`: the output from `prep` helper function, which should contain
+any parameters learned on the 'training data'.
 
 ```{r, message = FALSE, warning = FALSE}
-library(dplyr)
 center_scale <- function(x, prep_output, alpha, beta) {
 
   # extract only the relevant variables from the new data set.
