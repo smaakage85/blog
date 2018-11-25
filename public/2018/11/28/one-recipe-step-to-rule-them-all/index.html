@@ -71,12 +71,15 @@
     <h1 class="article-title">One Recipe Step to Rule Them All</h1>
 
     
-    <span class="article-date">2018/11/04</span>
+    <span class="article-date">2018/11/28</span>
     
 
     <div class="article-content">
-      <p>In this post I will demonstrate, how my new R package <code>customsteps</code> can be used to generate recipe steps, that apply custom transformations to a data set.</p>
+      <p>In this post I will demonstrate, how my new R package <code>customsteps</code> can be used to create recipe steps, that apply custom transformations to a data set.</p>
 <p>Note, you should already be fairly familiar with the <a href="https://cran.r-project.org/web/packages/recipes/recipes.pdf"><code>recipes</code></a> package before you continue reading this post or give <code>customsteps</code> a spin!</p>
+<p>Recommended music for this reading session:</p>
+<iframe src="https://open.spotify.com/embed/track/323v1HB9ugfmQyqZwFaZwz" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media">
+</iframe>
 <div id="introducing-the-customsteps-package" class="section level2">
 <h2>Introducing the <code>customsteps</code> package</h2>
 <p>Along with the <code>recipes</code> package distribution comes a number of pre-specified steps, that enables the user to manipulate data sets in various ways. The resulting data sets (/design matrices) can then be used as inputs into statistical or machine learning models.</p>
@@ -140,7 +143,7 @@ as.data.frame(params)
 <p>By convention the <code>bake</code> helper function must take the following arguments:</p>
 <ul>
 <li><code>x</code>: the new data set, that the step will be applied to.</li>
-<li><code>prep_output</code>: the output from <code>prep</code> helper function containing any parameters estimated from the initial data set.</li>
+<li><code>prep_output</code>: the output from the <code>prep</code> helper function containing any parameters estimated from the initial data set.</li>
 </ul>
 <p>I define the function <code>center_scale</code>, that will serve as my <code>bake</code> helper function. It will center and scale variables of a new data set.</p>
 <pre class="r"><code>center_scale &lt;- function(x, prep_output, alpha, beta) {
@@ -156,7 +159,7 @@ as.data.frame(params)
        ~ alpha + (.x - .y$mean) * beta / .y$sd)
   
 }</code></pre>
-<p>Let us see the function in action. My first (sanity) check of the function is to apply it to the initial data set, that was used for estimation of the means and standard deviations.</p>
+<p>My first (sanity) check of the function is to apply it to the initial data set, that was used for estimation of the means and standard deviations.</p>
 <pre class="r"><code>library(tibble)
 # center and scale variables of new data set to have a mean of zero
 # and a standard deviation of one.
@@ -225,7 +228,7 @@ rec
 #&gt; Operations:
 #&gt; 
 #&gt; The following variables are used for computing transformations
-#&gt;  and dropped afterwards:
+#&gt;  and will be dropped afterwards:
 #&gt;  mpg, disp</code></pre>
 <p>I will go right ahead and bake the new recipe.</p>
 <pre class="r"><code># bake recipe.
@@ -245,7 +248,8 @@ cars_baked %&gt;%
 #&gt; 4  3.79  -1.59 
 #&gt; 5  0.796 -1.15 
 #&gt; 6 -0.651  0.593</code></pre>
-<p>Results are as expected (same as before). Great succes! You should now be able to create your very own recipe steps to do (almost) whatever transformation to your data, that you want.</p>
+<p>Results are as expected (same as before). Great succes!</p>
+<p>You should now be able to create your very own recipe steps to do (almost) whatever transformation to your data, that you want.</p>
 </div>
 </div>
 <div id="conclusions" class="section level2">

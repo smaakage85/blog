@@ -1,35 +1,35 @@
 ---
 title: One Recipe Step to Rule Them All
 author: Lars Kjeldgaard
-date: '2018-11-04'
-slug: one-recipes-step-to-rule-them-all
+date: '2018-11-28'
+slug: one-recipe-step-to-rule-them-all
 categories: ["R"]
-tags: ["recipes", "framework", "caret", "machine learning", "preprocessing", "modelgrid", "predictive modeling"]
+tags: ["recipes", "framework", "machine learning", "statistic", "design matrix", 
+"preprocessing", "predictive modeling"]
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-In this post I will demonstrate, how my new R package `customsteps` can be used to generate [`recipes`](https://cran.r-project.org/web/packages/recipes/recipes.pdf) steps, that apply custom transformations to a data set. 
+In this post I will demonstrate, how my new R package `customsteps` can be used 
+to create recipe steps, that apply custom transformations to a data set. 
 
-Note, you should already be fairly familiar with the `recipes` package 
+Note, you should already be fairly familiar with the [`recipes`](https://cran.r-project.org/web/packages/recipes/recipes.pdf) package 
 before you continue reading this post or give `customsteps` a spin!
 
-## Introducing the `customsteps` package
+Recommended music for this reading session:
 
-<!-- An extensible framework to create and preprocess -->
-<!-- design matrices. Recipes consist of one or more data manipulation -->
-<!-- and analysis ``steps''. Statistical parameters for the steps can -->
-<!-- be estimated from an initial data set and then applied to -->
-<!-- other data sets. The resulting design matrices can then -->
+<iframe src="https://open.spotify.com/embed/track/323v1HB9ugfmQyqZwFaZwz" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+
+## Introducing the `customsteps` package
 
 Along with the `recipes` package distribution comes a number of pre-specified steps, that enables the user to manipulate data sets in various ways. The
 resulting data sets (/design matrices) can then be used as inputs 
 into statistical or machine learning models. 
 
 If you want to apply a specific transformation to your data set, that is not supported by the pre-specified steps, you have two options. You can write an entire [custom recipe step **from
-scratch**](https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd), that conducts the specific transformation. This however takes quite a bit of work and code. An alternative - and sometimes better - approach is to apply the `customsteps` package, that I have just released on CRAN.
+scratch**](https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd). This however takes quite a bit of work and code. An alternative - and sometimes better - approach is to apply the `customsteps` package, that I have just released on CRAN.
 
 ```{r, message = FALSE, warning = FALSE}
 # install.packages("customsteps")
@@ -57,8 +57,6 @@ Assume, that I want to transform a variable ${\mathbf{x}}$ like this:
 2. Scale the transformed variable, such that its standard deviation equals an 
 arbitrary number $\beta$
 
-which is a quite common transformation.
-
 The transformed variable $\hat{\mathbf{x}}$ can then be derived as (try to
 do it yourself):
 
@@ -67,16 +65,16 @@ $\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{s_\math
 where $\bar{\mathbf{x}}$ is the mean of $\mathbf{x}$, and 
 $s_\mathbf{x}$ is the standard deviation of ${\mathbf{x}}$.
 
-**Note**, that centering ${\mathbf{x}}$ around 0 and scaling it in order to arrive at a standard deviation of 1 is just a special case of the above transformation with parameters $\alpha = 0, \beta = 1$.
+Note that centering ${\mathbf{x}}$ around 0 and scaling it in order to arrive at a standard deviation of 1 is just a special case of the above transformation with parameters $\alpha = 0, \beta = 1$.
 
 ### Write the `prep` helper function
 
-First, we have to write a function, that estimates the relevant statistical 
+First, I need to write a function, that estimates the relevant statistical 
 parameters from an initial data set. I call this function the `prep` helper 
 function. 
 
 Obviously, the above transformation requires the mean $\bar{\mathbf{x}}$ and 
-standard deviation $s_\mathbf{x}$ to be learned from an initial data set. 
+standard deviation $s_\mathbf{x}$ to be learned from the initial data set. 
 Therefore I define a function `compute_means_sd`, that estimates the two 
 parameters for (an arbitrary number of) numeric variables. 
 
@@ -93,13 +91,13 @@ compute_means_sd <- function(x) {
 }
 ```
 
-Let us see the function in action. I will apply it on a subset of the famous
+Let us see the function in action. I will apply it to a subset of the famous
 `mtcars` data set.
 
 ```{r, message = FALSE, warning = FALSE}
 library(dplyr)
 
-# subsets 'mtcars' into two data sets.
+# divide 'mtcars' into two data sets.
 cars_initial <- mtcars[1:16, ]
 cars_new <- mtcars[17:nrow(mtcars), ]
 
@@ -109,26 +107,25 @@ params <- cars_initial %>%
   compute_means_sd(.)
 
 # display parameters. 
-params %>%
-  as.data.frame(.)
+as.data.frame(params)
 ```
 
 It works like a charm. Great, we are halfway there!
 
 ### Write the `bake` helper function
 
-Second, we have to specify a `bake` helper function, that defines how to apply
-the transformation to new data using the parameters estimated from the intial 
-data set. 
+Second, I have to specify a `bake` helper function, that defines how to apply
+the transformation to a new data set using the parameters estimated from the 
+intial data set. 
 
 By convention the `bake` helper function must take the following arguments:
 
 * `x`: the new data set, that the step will be applied to.
-* `prep_output`: the output from `prep` helper function containing 
-any parameters learned on the initial data set.
+* `prep_output`: the output from the `prep` helper function containing 
+any parameters estimated from the initial data set.
 
-I will define the function `center_scale`, that will serve as my `bake` helper 
-function. that will center and scale variables of a new data set.
+I define the function `center_scale`, that will serve as my `bake` helper 
+function. It will center and scale variables of a new data set.
 
 ```{r, message = FALSE, warning = FALSE}
 center_scale <- function(x, prep_output, alpha, beta) {
@@ -136,9 +133,9 @@ center_scale <- function(x, prep_output, alpha, beta) {
   # extract only the relevant variables from the new data set.
   new_data <- select(x, names(prep_output))
 
-  # apply transformation on each of these variables.
-  # the variables are centered around 'alpha'.
-  # the variables are scaled to have a standard deviation of 'beta'.
+  # apply transformation to each of these variables.
+  # variables are centered around 'alpha' and scaled to have a standard 
+  # deviation of 'beta'.
   map2(.x = new_data,
        .y = prep_output,
        ~ alpha + (.x - .y$mean) * beta / .y$sd)
@@ -146,8 +143,8 @@ center_scale <- function(x, prep_output, alpha, beta) {
 }
 ```
 
-Let us see the function in action. My first check will be to apply the 
-transformation to the initial data set, that was used for estimation of
+My first (sanity) check of the function is to
+apply it to the initial data set, that was used for estimation of
 the means and standard deviations.
 
 ```{r, message = FALSE, warning = FALSE}
@@ -190,11 +187,10 @@ very own custom recipe step.
 
 The function `step_custom_transformation` takes `prep` and `bake` helper
 functions as inputs and turns them into a complete recipe step, that can be used
-out of the box. In fact, we will do just that and create a recipe step 
-from our new functions `compute_means_sd` and `center_scale`.
+out of the box. 
 
-First we will create the specification of the recipe step by invoking
-`step_custom_transformation`.
+I create the specification of the recipe step from the new functions `compute_means_sd` and 
+`center_scale` by invoking `step_custom_transformation`.
 
 ```{r, message = FALSE, warning = FALSE}
 library(recipes)
@@ -206,13 +202,13 @@ rec <- recipe(cars_initial) %>%
                              bake_how = "replace")
 ```
 
-That is all there is to it! Easy.
+And that is all there is to it! Easy.
 
-By setting 'bake_options' to "replace", the 
+Note, by setting 'bake_options' to "replace", the 
 selected terms will be replaced with the transformed variables, when the
 recipe is baked.
 
-I will just check, that the recipe works as expected. First we will `prep`
+I will just check, that the recipe works as expected. First I will `prep`(/train)
 the recipe.
 
 ```{r, message = FALSE, warning = FALSE}
@@ -223,7 +219,7 @@ rec <- prep(rec)
 rec
 ```
 
-We will go right ahead and bake the new recipe.
+I will go right ahead and bake the new recipe.
 
 ```{r, message = FALSE, warning = FALSE}
 # bake recipe.
@@ -236,12 +232,18 @@ cars_baked %>%
   head(.)
 ```
 
-Results are as expected (same as before). Great succes!
+Results are as expected (same as before). Great succes! 
+
+You should now be able
+to create your very own recipe steps to do (almost) whatever 
+transformation to your data, that you want.
 
 ## Conclusions
 
 * Customized recipe steps can be created with a minimum of effort and code using
 my new R package `customsteps`.
+* The `customsteps` step functions are higher-order functions,
+that create specificiations of recipe steps from custom input functions.
 
 Please let me hear from you, if you have any feedback on the package. 
 

@@ -6,7 +6,7 @@
     <description>Recent content in Tags on pRopaganda by smaakagen</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 04 Nov 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 24 Sep 2018 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
@@ -14,16 +14,25 @@
     <item>
       <title>Caret</title>
       <link>/tags/caret/</link>
-      <pubDate>Sun, 04 Nov 2018 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 24 Sep 2018 00:00:00 +0000</pubDate>
       
       <guid>/tags/caret/</guid>
       <description></description>
     </item>
     
     <item>
+      <title>Design Matrix</title>
+      <link>/tags/design-matrix/</link>
+      <pubDate>Wed, 28 Nov 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/design-matrix/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Framework</title>
       <link>/tags/framework/</link>
-      <pubDate>Sun, 04 Nov 2018 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 28 Nov 2018 00:00:00 +0000</pubDate>
       
       <guid>/tags/framework/</guid>
       <description></description>
@@ -32,7 +41,7 @@
     <item>
       <title>Machine Learning</title>
       <link>/tags/machine-learning/</link>
-      <pubDate>Sun, 04 Nov 2018 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 28 Nov 2018 00:00:00 +0000</pubDate>
       
       <guid>/tags/machine-learning/</guid>
       <description></description>
@@ -41,7 +50,7 @@
     <item>
       <title>Modelgrid</title>
       <link>/tags/modelgrid/</link>
-      <pubDate>Sun, 04 Nov 2018 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 24 Sep 2018 00:00:00 +0000</pubDate>
       
       <guid>/tags/modelgrid/</guid>
       <description></description>
@@ -59,7 +68,7 @@
     <item>
       <title>Predictive Modeling</title>
       <link>/tags/predictive-modeling/</link>
-      <pubDate>Sun, 04 Nov 2018 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 28 Nov 2018 00:00:00 +0000</pubDate>
       
       <guid>/tags/predictive-modeling/</guid>
       <description></description>
@@ -68,7 +77,7 @@
     <item>
       <title>Preprocessing</title>
       <link>/tags/preprocessing/</link>
-      <pubDate>Sun, 04 Nov 2018 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 28 Nov 2018 00:00:00 +0000</pubDate>
       
       <guid>/tags/preprocessing/</guid>
       <description></description>
@@ -77,9 +86,18 @@
     <item>
       <title>Recipes</title>
       <link>/tags/recipes/</link>
-      <pubDate>Sun, 04 Nov 2018 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 28 Nov 2018 00:00:00 +0000</pubDate>
       
       <guid>/tags/recipes/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Statistic</title>
+      <link>/tags/statistic/</link>
+      <pubDate>Wed, 28 Nov 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/statistic/</guid>
       <description></description>
     </item>
     

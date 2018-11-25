@@ -6,130 +6,10 @@
     <description>Recent content in Caret on pRopaganda by smaakagen</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 04 Nov 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 24 Sep 2018 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="/tags/caret/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>One &#39;recipes&#39; Step to Rule Them All</title>
-      <link>/2018/11/04/one-recipes-step-to-rule-them-all/</link>
-      <pubDate>Sun, 04 Nov 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/2018/11/04/one-recipes-step-to-rule-them-all/</guid>
-      <description>&lt;p&gt;In this post I will demonstrate, how my new R package &lt;code&gt;customsteps&lt;/code&gt; can be used to generate &lt;code&gt;recipes&lt;/code&gt; steps, that apply custom transformations to a data set.&lt;/p&gt;
-&lt;p&gt;Note, you should already be fairly familiar with the &lt;code&gt;recipes&lt;/code&gt; package before continue reading this post or giving &lt;code&gt;customsteps&lt;/code&gt; a spin!&lt;/p&gt;
-&lt;div id=&#34;introducing-the-customsteps-package&#34; class=&#34;section level2&#34;&gt;
-&lt;h2&gt;Introducing the ‘customsteps’ package&lt;/h2&gt;
-&lt;p&gt;If you want to apply a transformation to your data set, that is not supported by the pre-specified steps, that come along with the &lt;code&gt;recipes&lt;/code&gt; package distribution, you have two options. You could write an entire &lt;a href=&#34;https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd&#34;&gt;custom &lt;code&gt;recipes&lt;/code&gt; step &lt;strong&gt;from scratch&lt;/strong&gt;&lt;/a&gt;, that conducts the specific transformation. This however takes quite a bit of work and code. An alternative - and sometimes better - approach is to apply the &lt;code&gt;customsteps&lt;/code&gt; package, that I have just released on CRAN.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# install.packages(&amp;quot;customsteps&amp;quot;)
-library(customsteps)&lt;/code&gt;&lt;/pre&gt;
-&lt;div id=&#34;customizable-higher-order-steps&#34; class=&#34;section level3&#34;&gt;
-&lt;h3&gt;Customizable Higher-Order Steps&lt;/h3&gt;
-&lt;p&gt;&lt;code&gt;customsteps&lt;/code&gt; contains a set of customizable higher-order &lt;code&gt;recipes&lt;/code&gt; &lt;code&gt;step&lt;/code&gt; functions, that create specifications of recipe steps, that will transform or filter the data in accordance with the input functions. Let me just remind you of the definition of &lt;a href=&#34;https://en.wikipedia.org/wiki/Higher-order_function&#34;&gt;&lt;strong&gt;higher-order functions&lt;/strong&gt;&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;&lt;em&gt;In mathematics and computer science, a higher-order function is a function that does at least one of the following: 1. takes one or more functions as arguments, 2. returns a function as its result.&lt;/em&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;In the following I will present an example of how to use the &lt;code&gt;step_custom_transformation&lt;/code&gt; function from the &lt;code&gt;customsteps&lt;/code&gt; package in order to create a specification of a recipe step, that will apply a custom transformation on a data set.&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;use-case-centering-and-scaling-numeric-data&#34; class=&#34;section level2&#34;&gt;
-&lt;h2&gt;Use Case: Centering and Scaling Numeric Data&lt;/h2&gt;
-&lt;p&gt;Assume, that we want to transform a variable &lt;span class=&#34;math inline&#34;&gt;\({\mathbf{x}}\)&lt;/span&gt; like this:&lt;/p&gt;
-&lt;ol style=&#34;list-style-type: decimal&#34;&gt;
-&lt;li&gt;Center &lt;span class=&#34;math inline&#34;&gt;\({\mathbf{x}}\)&lt;/span&gt; around an arbitrary number &lt;span class=&#34;math inline&#34;&gt;\(\alpha\)&lt;/span&gt;.&lt;/li&gt;
-&lt;li&gt;Scale the transformed variable, such that its standard deviation equals an arbitrary number &lt;span class=&#34;math inline&#34;&gt;\(\beta\)&lt;/span&gt;.&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;The transformed variable &lt;span class=&#34;math inline&#34;&gt;\(\hat{\mathbf{x}}\)&lt;/span&gt; can then be derived as:&lt;/p&gt;
-&lt;p&gt;&lt;span class=&#34;math inline&#34;&gt;\(\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{s_\mathbf{x}}\)&lt;/span&gt;&lt;/p&gt;
-&lt;p&gt;where &lt;span class=&#34;math inline&#34;&gt;\(\bar{\mathbf{x}}\)&lt;/span&gt; is the mean of &lt;span class=&#34;math inline&#34;&gt;\(\mathbf{x}\)&lt;/span&gt;, and &lt;span class=&#34;math inline&#34;&gt;\(s_\mathbf{x}\)&lt;/span&gt; is the standard deviation of &lt;span class=&#34;math inline&#34;&gt;\({\mathbf{x}}\)&lt;/span&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;, that centering &lt;span class=&#34;math inline&#34;&gt;\({\mathbf{x}}\)&lt;/span&gt; around 0 and scaling it to arrive at a standard deviation of 1 is just a special case of the above transformation with &lt;span class=&#34;math inline&#34;&gt;\(\alpha = 0, \beta = 1\)&lt;/span&gt;.&lt;/p&gt;
-&lt;div id=&#34;helper-function-for-the-prep-method&#34; class=&#34;section level3&#34;&gt;
-&lt;h3&gt;Helper Function for the &lt;code&gt;prep&lt;/code&gt; method&lt;/h3&gt;
-&lt;p&gt;If the transformation requires learning parameters from the ‘training data’, one has to define a helper function for the &lt;code&gt;prep&lt;/code&gt; method of &lt;code&gt;step_custom_transformation&lt;/code&gt;. The job of the this function is - through the &lt;code&gt;prep&lt;/code&gt; method - to learn the parameters, that will be used to transform a new data set.&lt;/p&gt;
-&lt;p&gt;Obviously, the above transformation requires the mean &lt;span class=&#34;math inline&#34;&gt;\(\bar{\mathbf{x}}\)&lt;/span&gt; and standard deviation &lt;span class=&#34;math inline&#34;&gt;\(s_\mathbf{x}\)&lt;/span&gt; to be learned from the training data. Therefore I will write a function &lt;code&gt;compute_means_sd&lt;/code&gt;, that learns the two parameters for (an arbitrary number of) numeric variables. By convention the helper function must take the argument &lt;code&gt;x&lt;/code&gt;: the subset of selected variables from the training data.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(purrr)
-
-compute_means_sd &amp;lt;- function(x) {
-  
-  map(.x = x, ~ list(mean = mean(.x), sd = sd(.x)))
-
-}&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Let us first see the function in action.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(dplyr)
-#&amp;gt; 
-#&amp;gt; Vedhæfter pakke: &amp;#39;dplyr&amp;#39;
-#&amp;gt; De følgende objekter er maskerede fra &amp;#39;package:stats&amp;#39;:
-#&amp;gt; 
-#&amp;gt;     filter, lag
-#&amp;gt; De følgende objekter er maskerede fra &amp;#39;package:base&amp;#39;:
-#&amp;gt; 
-#&amp;gt;     intersect, setdiff, setequal, union
-cars %&amp;gt;%
-  select(speed, dist) %&amp;gt;%
-  compute_means_sd(.)
-#&amp;gt; $speed
-#&amp;gt; $speed$mean
-#&amp;gt; [1] 15.4
-#&amp;gt; 
-#&amp;gt; $speed$sd
-#&amp;gt; [1] 5.287644
-#&amp;gt; 
-#&amp;gt; 
-#&amp;gt; $dist
-#&amp;gt; $dist$mean
-#&amp;gt; [1] 42.98
-#&amp;gt; 
-#&amp;gt; $dist$sd
-#&amp;gt; [1] 25.76938&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;It works like a charm. Great, we are halfway there!&lt;/p&gt;
-&lt;/div&gt;
-&lt;div id=&#34;helper-function-for-the-bake-method&#34; class=&#34;section level3&#34;&gt;
-&lt;h3&gt;Helper Function for the &lt;code&gt;bake&lt;/code&gt; method&lt;/h3&gt;
-&lt;p&gt;Likewise we have to specify a helper function for the &lt;code&gt;bake&lt;/code&gt; method for &lt;code&gt;step_custom_transformation&lt;/code&gt;. In general the &lt;code&gt;bake&lt;/code&gt; method of a recipe step defines, how it applies to a new data set.&lt;/p&gt;
-&lt;p&gt;The &lt;code&gt;bake&lt;/code&gt; helper function for &lt;code&gt;step_custom_transformation&lt;/code&gt; defines, how a new data set is transformed using the parameters learned from the ‘training data’.&lt;/p&gt;
-&lt;p&gt;By convention the helper function must take the arguments:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;x&lt;/code&gt;: the new data, that the step will be applied.&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;prep_output&lt;/code&gt;: the output from &lt;code&gt;prep&lt;/code&gt; helper function, which should contain any parameters learned on the ‘training data’.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;center_scale &amp;lt;- function(x, prep_output, alpha, beta) {
-
-  # extract only the relevant variables from the new data set.
-  newdata &amp;lt;- select(x, names(prep_output))
-
-  # apply transformation on each of these variables.
-  map2(.x = newdata,
-       .y = prep_output,
-       ~ alpha + (.x - .y$mean) * beta / .y$sd)
-  
-}&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;We are all set to create a recipe drawing on the new transformation for the &lt;code&gt;mtcars&lt;/code&gt; data set.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(recipes)
-rec &amp;lt;- recipe(mtcars) %&amp;gt;%
-  step_custom_transformation(mpg, disp, hp,
-                             prep_function = compute_means_sd,
-                             bake_function = center_scale,
-                             bake_options = list(alpha = 100, beta = 25),
-                             bake_how = &amp;quot;bind_cols&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Prep and bake recipe.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;rec_prep &amp;lt;- prep(rec)
-rec_baked &amp;lt;- bake(rec_prep, mtcars)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Display results.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;bind_rows(
-mean = map_dbl(rec_baked, mean),
-sd = map_dbl(rec_baked, sd)
-)
-#&amp;gt; # A tibble: 2 x 14
-#&amp;gt;     mpg   cyl  disp    hp  drat    wt  qsec    vs    am  gear  carb  mpg1
-#&amp;gt;   &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;
-#&amp;gt; 1 20.1   6.19  231. 147.  3.60  3.22  17.8  0.438 0.406 3.69   2.81  100 
-#&amp;gt; 2  6.03  1.79  124.  68.6 0.535 0.978  1.79 0.504 0.499 0.738  1.62   25.
-#&amp;gt; # ... with 2 more variables: disp1 &amp;lt;dbl&amp;gt;, hp1 &amp;lt;dbl&amp;gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-</description>
-    </item>
     
     <item>
       <title>Tuning a data preprocessing pipeline with recipes and modelgrid</title>
@@ -369,7 +249,9 @@ mg
 &lt;p&gt;The first natural step of setting up the model grid is to define, which settings should be shared by all models by default. We will use the &lt;code&gt;GermanCredit&lt;/code&gt; data set from the &lt;code&gt;caret&lt;/code&gt; package as example data and do just that with the &lt;code&gt;share_settings&lt;/code&gt; function.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(magrittr)
 library(caret)
+#&amp;gt; Warning: pakke &amp;#39;caret&amp;#39; blev bygget under R version 3.5.1
 library(dplyr)
+#&amp;gt; Warning: pakke &amp;#39;dplyr&amp;#39; blev bygget under R version 3.5.1
 library(purrr)
 # Load data on German credit applications.  
 data(GermanCredit)

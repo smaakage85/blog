@@ -57,7 +57,9 @@ mg
 &lt;p&gt;The first natural step of setting up the model grid is to define, which settings should be shared by all models by default. We will use the &lt;code&gt;GermanCredit&lt;/code&gt; data set from the &lt;code&gt;caret&lt;/code&gt; package as example data and do just that with the &lt;code&gt;share_settings&lt;/code&gt; function.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(magrittr)
 library(caret)
+#&amp;gt; Warning: pakke &amp;#39;caret&amp;#39; blev bygget under R version 3.5.1
 library(dplyr)
+#&amp;gt; Warning: pakke &amp;#39;dplyr&amp;#39; blev bygget under R version 3.5.1
 library(purrr)
 # Load data on German credit applications.  
 data(GermanCredit)
