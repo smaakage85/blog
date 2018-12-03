@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.46" />
+
+
+<title>One Recipe Step to Rule Them All - pRopaganda by smaakagen</title>
+<meta property="og:title" content="One Recipe Step to Rule Them All - pRopaganda by smaakagen">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About smaakagen</a></li>
+    
+    <li><a href="https://github.com/smaakage85/">GitHub</a></li>
+    
+    <li><a href="https://www.linkedin.com/in/lars-kjeldgaard-321b0351/">LinkedIn</a></li>
+    
+    <li><a href="https://rweekly.org/">R Weekly</a></li>
+    
+    <li><a href="https://www.r-bloggers.com/">R-bloggers</a></li>
+    
+    <li><a href="https://www.r-users.com/">R-users</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">6 min read</span>
+    
+
+    <h1 class="article-title">One Recipe Step to Rule Them All</h1>
+
+    
+    <span class="article-date">2018/12/03</span>
+    
+
+    <div class="article-content">
+      <p>In this post I will demonstrate, how my new R package <code>customsteps</code> can be used to create recipe steps, that apply custom transformations to a data set.</p>
+<p>Note, you should already be fairly familiar with the <a href="https://cran.r-project.org/web/packages/recipes/recipes.pdf"><code>recipes</code></a> package before you continue reading this post or give <code>customsteps</code> a spin!</p>
+<p>Recommended music for this reading session:</p>
+<iframe src="https://open.spotify.com/embed/track/323v1HB9ugfmQyqZwFaZwz" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media">
+</iframe>
+<div id="introducing-the-customsteps-package" class="section level2">
+<h2>Introducing the <code>customsteps</code> package</h2>
+<p>Along with the <code>recipes</code> package distribution comes a number of pre-specified steps, that enables the user to manipulate data sets in various ways. The resulting data sets (/design matrices) can then be used as inputs into statistical or machine learning models.</p>
+<p>If you want to apply a specific transformation to your data set, that is not supported by the pre-specified steps, you have two options. You can write an entire <a href="https://github.com/tidymodels/recipes/blob/master/vignettes/Custom_Steps.Rmd">custom recipe step <strong>from scratch</strong></a>. This however takes quite a bit of work and code. An alternative - and sometimes better - approach is to apply the <code>customsteps</code> package, that I have just released on CRAN.</p>
+<pre class="r"><code># install.packages(&quot;customsteps&quot;)
+library(customsteps)</code></pre>
+<div id="customizable-higher-order-steps" class="section level3">
+<h3>Customizable Higher-Order Steps</h3>
+<p><code>customsteps</code> contains a set of customizable higher-order recipe step functions, that create specifications of recipe steps, that will transform or filter the data in accordance with custom input functions.</p>
+<p>Let me just remind you of the definition of <a href="https://en.wikipedia.org/wiki/Higher-order_function"><strong>higher-order functions</strong></a>:</p>
+<blockquote>
+<p><em>In mathematics and computer science, a higher-order function is a function that does at least one of the following: 1. takes one or more functions as arguments, 2. returns a function as its result.</em></p>
+</blockquote>
+<p>Next, I will present an example of how to use the <code>customsteps</code> package in order to create a recipe step, that will apply a custom transformation to a data set.</p>
+</div>
+</div>
+<div id="use-case-centering-and-scaling-numeric-data" class="section level2">
+<h2>Use Case: Centering and Scaling Numeric Data</h2>
+<p>Assume, that I want to transform a variable <span class="math inline">\({\mathbf{x}}\)</span> like this:</p>
+<ol style="list-style-type: decimal">
+<li>Center <span class="math inline">\({\mathbf{x}}\)</span> around an arbitrary number <span class="math inline">\(\alpha\)</span>.</li>
+<li>Scale the transformed variable, such that its standard deviation equals an arbitrary number <span class="math inline">\(\beta\)</span>.</li>
+</ol>
+<p>The transformed variable <span class="math inline">\(\hat{\mathbf{x}}\)</span> can then be derived as (try to do it yourself):</p>
+<p><span class="math inline">\(\hat{\mathbf{x}} = \alpha + (\mathbf{x} - \bar{\mathbf{x}})\frac{\beta}{s_\mathbf{x}}\)</span></p>
+<p>where <span class="math inline">\(\bar{\mathbf{x}}\)</span> is the mean of <span class="math inline">\(\mathbf{x}\)</span>, and <span class="math inline">\(s_\mathbf{x}\)</span> is the standard deviation of <span class="math inline">\({\mathbf{x}}\)</span>.</p>
+<p>Note that centering <span class="math inline">\({\mathbf{x}}\)</span> around 0 and scaling it in order to arrive at a standard deviation of 1 is just a special case of the above transformation with parameters <span class="math inline">\(\alpha = 0, \beta = 1\)</span>.</p>
+<div id="write-the-prep-helper-function" class="section level3">
+<h3>Write the <code>prep</code> helper function</h3>
+<p>First, I need to write a function, that estimates the relevant statistical parameters from an initial data set. I call this function the <code>prep</code> helper function.</p>
+<p>Obviously, the above transformation requires the mean <span class="math inline">\(\bar{\mathbf{x}}\)</span> and standard deviation <span class="math inline">\(s_\mathbf{x}\)</span> to be learned from the initial data set. Therefore I define a function <code>compute_means_sd</code>, that estimates the two parameters for (any arbitrary number of) numeric variables.</p>
+<p>By convention the <code>prep</code> helper function must take the argument <code>x</code>: the subset of selected variables from the initial data set.</p>
+<pre class="r"><code>library(purrr)
+
+compute_means_sd &lt;- function(x) {
+  
+  map(.x = x, ~ list(mean = mean(.x), sd = sd(.x)))
+
+}</code></pre>
+<p>Let us see the function in action. I will apply it to a subset of the famous <code>mtcars</code> data set.</p>
+<pre class="r"><code>library(dplyr)
+
+# divide &#39;mtcars&#39; into two data sets.
+cars_initial &lt;- mtcars[1:16, ]
+cars_new &lt;- mtcars[17:nrow(mtcars), ]
+
+# learn parameters from initial data set.
+params &lt;- cars_initial %&gt;%
+  select(mpg, disp) %&gt;%
+  compute_means_sd(.)
+
+# display parameters. 
+as.data.frame(params)
+#&gt;   mpg.mean  mpg.sd disp.mean disp.sd
+#&gt; 1     18.2 4.14761  250.8187 113.372</code></pre>
+<p>It works like a charm. Great, we are halfway there!</p>
+</div>
+<div id="write-the-bake-helper-function" class="section level3">
+<h3>Write the <code>bake</code> helper function</h3>
+<p>Second, I have to specify a <code>bake</code> helper function, that defines how to apply the transformation to a new data set using the parameters estimated from the intial data set.</p>
+<p>By convention the <code>bake</code> helper function must take the following arguments:</p>
+<ul>
+<li><code>x</code>: the new data set, that the step will be applied to.</li>
+<li><code>prep_output</code>: the output from the <code>prep</code> helper function containing any parameters estimated from the initial data set.</li>
+</ul>
+<p>I define the function <code>center_scale</code>, that will serve as my <code>bake</code> helper function. It will center and scale variables of a new data set.</p>
+<pre class="r"><code>center_scale &lt;- function(x, prep_output, alpha, beta) {
+
+  # extract only the relevant variables from the new data set.
+  new_data &lt;- select(x, names(prep_output))
+
+  # apply transformation to each of these variables.
+  # variables are centered around &#39;alpha&#39; and scaled to have a standard 
+  # deviation of &#39;beta&#39;.
+  map2(.x = new_data,
+       .y = prep_output,
+       ~ alpha + (.x - .y$mean) * beta / .y$sd)
+  
+}</code></pre>
+<p>My first (sanity) check of the function is to apply it to the initial data set, that was used for estimation of the means and standard deviations.</p>
+<pre class="r"><code>library(tibble)
+# center and scale variables of new data set to have a mean of zero
+# and a standard deviation of one.
+cars_initial_transformed &lt;- center_scale(x = cars_initial, 
+                                         prep_output = params,
+                                         alpha = 0, 
+                                         beta = 1)
+
+# display transformed variables.
+cars_initial_transformed %&gt;%
+  compute_means_sd(.) %&gt;%
+  as.data.frame(.)
+#&gt;       mpg.mean mpg.sd    disp.mean disp.sd
+#&gt; 1 1.731877e-16      1 7.199102e-17       1</code></pre>
+<p>Results are correct within computational precision.</p>
+<p>Also, I will just check the function out on the other subset of <code>mtcars</code>.</p>
+<pre class="r"><code># center and scale variables of new data set to have a mean of zero
+# and a standard deviation of one.
+cars_new_transformed &lt;- center_scale(x = cars_new, 
+                                     prep_output = params,
+                                     alpha = 0, 
+                                     beta = 1)
+
+# display transformed variables.
+cars_new_transformed %&gt;%
+  as.tibble(.) %&gt;%
+  head(.)
+#&gt; # A tibble: 6 x 2
+#&gt;      mpg   disp
+#&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+#&gt; 1 -0.844  1.67 
+#&gt; 2  3.42  -1.52 
+#&gt; 3  2.94  -1.54 
+#&gt; 4  3.79  -1.59 
+#&gt; 5  0.796 -1.15 
+#&gt; 6 -0.651  0.593</code></pre>
+<p>Looks right! All that is left now is to put the pieces together into my new very own custom recipe step.</p>
+</div>
+<div id="putting-the-pieces-together" class="section level3">
+<h3>Putting the pieces together</h3>
+<p>The function <code>step_custom_transformation</code> takes <code>prep</code> and <code>bake</code> helper functions as inputs and turns them into a complete recipe step, that can be used out of the box.</p>
+<p>I create the specification of the recipe step from the new functions <code>compute_means_sd</code> and <code>center_scale</code> by invoking <code>step_custom_transformation</code>.</p>
+<pre class="r"><code>library(recipes)
+rec &lt;- recipe(cars_initial) %&gt;%
+  step_custom_transformation(mpg, disp,
+                             prep_function = compute_means_sd,
+                             bake_function = center_scale,
+                             bake_options = list(alpha = 0, beta = 1),
+                             bake_how = &quot;replace&quot;)</code></pre>
+<p>And that is all there is to it! Easy.</p>
+<p>Note, by setting ‘bake_options’ to “replace”, the selected terms will be replaced with the transformed variables, when the recipe is baked.</p>
+<p>I will just check, that the recipe works as expected. First I will <code>prep</code>(/train) the recipe.</p>
+<pre class="r"><code># prep recipe.
+rec &lt;- prep(rec)
+
+# print recipe.
+rec
+#&gt; Data Recipe
+#&gt; 
+#&gt; Inputs:
+#&gt; 
+#&gt;   11 variables (no declared roles)
+#&gt; 
+#&gt; Training data contained 16 data points and no missing data.
+#&gt; 
+#&gt; Operations:
+#&gt; 
+#&gt; The following variables are used for computing transformations
+#&gt;  and will be dropped afterwards:
+#&gt;  mpg, disp</code></pre>
+<p>I will go right ahead and bake the new recipe.</p>
+<pre class="r"><code># bake recipe.
+cars_baked &lt;- rec %&gt;%
+  bake(cars_new) %&gt;%
+  select(mpg, disp)
+  
+# display results.
+cars_baked %&gt;%
+  head(.)
+#&gt; # A tibble: 6 x 2
+#&gt;      mpg   disp
+#&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+#&gt; 1 -0.844  1.67 
+#&gt; 2  3.42  -1.52 
+#&gt; 3  2.94  -1.54 
+#&gt; 4  3.79  -1.59 
+#&gt; 5  0.796 -1.15 
+#&gt; 6 -0.651  0.593</code></pre>
+<p>Results are as expected (same as before). Great succes!</p>
+<p>You should now be able to create your very own recipe steps to do (almost) whatever transformation you want to your data.</p>
+</div>
+</div>
+<div id="conclusions" class="section level2">
+<h2>Conclusions</h2>
+<ul>
+<li>Customized recipe steps can be created with a minimum of effort and code using my new R package <code>customsteps</code>.</li>
+<li>The <code>customsteps</code> step functions are higher-order functions, that create specificiations of recipe steps from custom input functions.</li>
+</ul>
+<p>Please let me hear from you, if you have any feedback on the package.</p>
+<p>Best, smaakagen</p>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+
