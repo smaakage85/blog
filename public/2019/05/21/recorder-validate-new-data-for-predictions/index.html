@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.46" />
+
+
+<title>recorder: Validate Predictors in New Data - pRopaganda by smaakagen</title>
+<meta property="og:title" content="recorder: Validate Predictors in New Data - pRopaganda by smaakagen">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About smaakagen</a></li>
+    
+    <li><a href="https://github.com/smaakage85/">GitHub</a></li>
+    
+    <li><a href="https://www.linkedin.com/in/lars-kjeldgaard-321b0351/">LinkedIn</a></li>
+    
+    <li><a href="https://rweekly.org/">R Weekly</a></li>
+    
+    <li><a href="https://www.r-bloggers.com/">R-bloggers</a></li>
+    
+    <li><a href="https://www.r-users.com/">R-users</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">10 min read</span>
+    
+
+    <h1 class="article-title">recorder: Validate Predictors in New Data</h1>
+
+    
+    <span class="article-date">2019/05/21</span>
+    
+
+    <div class="article-content">
+      <p><img src="https://github.com/smaakage85/recorder/blob/master/man/figures/logo.png?raw=true" align="right" height=250/></p>
+<p><code>recorder</code> 0.8.1 is now available on CRAN. <code>recorder</code> is a lightweight toolkit to
+validate new observations before computing their corresponding predictions with
+a predictive model.</p>
+<p>With <code>recorder</code> the validation process consists of two steps:</p>
+<ol style="list-style-type: decimal">
+<li>record relevant statistics and meta data of the variables in the original
+training data for the predictive model</li>
+<li>use these data to run a set of basic validation tests on the new set of
+observations.</li>
+</ol>
+<p>Now we will take a deeper look into, what <code>recorder</code> has to offer.</p>
+<p><span style="color:red"><strong>[PLAY]</strong></span></p>
+<iframe src="https://open.spotify.com/embed/track/0k1xMUwn9sb7bZiqdT9ygx" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media">
+</iframe>
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>There can be many data specific reasons, why you might not be confident in the
+predictions of a predictive model on new data.</p>
+<p>Some of them are obvious, e.g.:</p>
+<ul>
+<li>One or more variables in training data are not found in new data</li>
+<li>The class of a given variable differs in training data and new data</li>
+</ul>
+<p>Others are more subtle, for instance when observations in
+new data are not within the “span” of the training data. One example of this could
+be, when a variable is “N/A” (missing) for a new observation to be predicted,
+but no missing values appeared for the same variable in the training data.
+This implies, that the new observation is not within the “span” of the training
+data. Another way of putting this: the model has never encountered an
+observation like this before, therefore there is good reason to doubt the
+quality of the prediction.</p>
+</div>
+<div id="recorder-workflow" class="section level2">
+<h2>recorder workflow</h2>
+<p>We will need some data in order to demonstrate the <code>recorder</code> workflow. As so
+many times before the famous <code>iris</code> data set will be used as an example. The
+data set is divided into training data, that can be used for model development,
+and new data for predictions after modelling, which we can validate with
+<code>recordr</code>.</p>
+<pre class="r"><code>set.seed(1)
+trn_idx &lt;- sample(seq_len(nrow(iris)), 100)
+data_training &lt;- iris[trn_idx, ]
+data_new &lt;- iris[-trn_idx, ]</code></pre>
+<div id="record-statistics-and-meta-data-of-variables-in-training-data" class="section level3">
+<h3>Record statistics and meta data of variables in training data</h3>
+<p>What we want to achieve is to validate the new observations (before computing
+their predictions with a predictive model) based on relevant
+statistics and meta data of the variables in the training data. Therefore
+relevant statistics and meta data of the variables must first be learned
+(recorded) from the trainingdata of the model. This is done with the <code>record()</code>
+function.</p>
+<pre class="r"><code>library(recorder)
+tape &lt;- record(data_training)
+#&gt; 
+#&gt; [RECORD]
+#&gt; 
+#&gt; ... recording meta data and statistics of 100 rows with 5 columns... 
+#&gt; 
+#&gt; [STOP]</code></pre>
+<p>This provides us with an object belonging to the <code>data.tape</code> class.
+The <code>data.tape</code> contains the statistics and meta data recorded from the training
+data.</p>
+<pre class="r"><code>str(tape)
+#&gt; List of 2
+#&gt;  $ class_variables:List of 5
+#&gt;   ..$ Sepal.Length: chr &quot;numeric&quot;
+#&gt;   ..$ Sepal.Width : chr &quot;numeric&quot;
+#&gt;   ..$ Petal.Length: chr &quot;numeric&quot;
+#&gt;   ..$ Petal.Width : chr &quot;numeric&quot;
+#&gt;   ..$ Species     : chr &quot;factor&quot;
+#&gt;  $ parameters     :List of 5
+#&gt;   ..$ Sepal.Length:List of 3
+#&gt;   .. ..$ min   : num 4.3
+#&gt;   .. ..$ max   : num 7.9
+#&gt;   .. ..$ any_NA: logi FALSE
+#&gt;   ..$ Sepal.Width :List of 3
+#&gt;   .. ..$ min   : num 2
+#&gt;   .. ..$ max   : num 4.2
+#&gt;   .. ..$ any_NA: logi FALSE
+#&gt;   ..$ Petal.Length:List of 3
+#&gt;   .. ..$ min   : num 1
+#&gt;   .. ..$ max   : num 6.9
+#&gt;   .. ..$ any_NA: logi FALSE
+#&gt;   ..$ Petal.Width :List of 3
+#&gt;   .. ..$ min   : num 0.1
+#&gt;   .. ..$ max   : num 2.5
+#&gt;   .. ..$ any_NA: logi FALSE
+#&gt;   ..$ Species     :List of 2
+#&gt;   .. ..$ levels: chr [1:3] &quot;setosa&quot; &quot;versicolor&quot; &quot;virginica&quot;
+#&gt;   .. ..$ any_NA: logi FALSE
+#&gt;  - attr(*, &quot;class&quot;)= chr [1:2] &quot;list&quot; &quot;data.tape&quot;</code></pre>
+<p>As you see, which meta data and statistics are recorded for the individual
+variables depends on the class of the given variable, e.g. for a numeric
+variable <code>min</code> and <code>max</code> values are computed, whilst <code>levels</code> is recorded for
+factor variables.</p>
+</div>
+<div id="validate-new-data" class="section level3">
+<h3>Validate new data</h3>
+<p>First, to spice things up, we will give the new observations a twist by inserting
+some extreme values and some missing values. On top of that we will create a new
+column, that was not observed in training data.</p>
+<pre class="r"><code># create sample of row indices.
+samples &lt;- lapply(1:3, function(x) {
+  set.seed(x) 
+  sample(nrow(data_new), 5, replace = FALSE)})
+
+# create numeric values without range, -Inf and Inf.
+data_new$Sepal.Width[samples[[1]]] &lt;- -Inf
+data_new$Petal.Width[samples[[2]]] &lt;- Inf
+
+# insert NA&#39;s in numeric vector.
+data_new$Petal.Length[samples[[3]]] &lt;- NA_real_
+
+# insert new column.
+data_new$junk &lt;- &quot;junk&quot;</code></pre>
+<p>Now, we will validate the new observations by running a number of basic
+validation tests on each of the new observations. The tests are based on the
+<code>data.tape</code> with the recorded statistics and meta data of variabels in the
+training data.</p>
+<p>You can get an overview over the validation tests with <code>get_tests_meta_data()</code>.</p>
+<pre class="r"><code>get_tests_meta_data()
+#&gt;           test_name evaluate_level   evaluate_class
+#&gt; 1: missing_variable            col              all
+#&gt; 2:   mismatch_class            col              all
+#&gt; 3:  mismatch_levels            col           factor
+#&gt; 4:     new_variable            col              all
+#&gt; 5:    outside_range            row numeric, integer
+#&gt; 6:        new_level            row           factor
+#&gt; 7:           new_NA            row              all
+#&gt; 8:         new_text            row        character
+#&gt;                                                    description
+#&gt; 1:  variable observed in training data but missing in new data
+#&gt; 2: &#39;class&#39; in new data does not match &#39;class&#39; in training data
+#&gt; 3:    &#39;levels&#39; in new data and training data are not identical
+#&gt; 4:      variable observed in new data but not in training data
+#&gt; 5:   value in new data outside recorded range in training data
+#&gt; 6:           new &#39;level&#39; in new data compared to training data
+#&gt; 7:            NA observed in new data but not in training data
+#&gt; 8:              new text in new data compared to training data</code></pre>
+<p>To run the tests simply invoke the <code>play()</code> function with the recorded <code>data.tape</code>
+on the new data.</p>
+<pre class="r"><code>playback &lt;- play(tape, data_new)
+#&gt; 
+#&gt; [PLAY]
+#&gt; 
+#&gt; ... playing data.tape on new data with 50 rows with 6 columns ...
+#&gt; 
+#&gt; [STOP]</code></pre>
+<p>What we actually have here is an object belonging to the new <code>data.playback</code>
+class.</p>
+<pre class="r"><code>class(playback)
+#&gt; [1] &quot;data.playback&quot; &quot;list&quot;</code></pre>
+<p>Great, now let us have a detailed look at the test results with the <code>print()</code>
+method.</p>
+<pre class="r"><code>playback
+#&gt; 
+#&gt; [PLAY]
+#&gt; 
+#&gt; # of rows in new data: 50
+#&gt; # of rows passing all tests: 0
+#&gt; # of rows failing one or more tests: 50
+#&gt; 
+#&gt; Test results (failures):
+#&gt; &gt; &#39;missing_variable&#39;: no failures
+#&gt; &gt; &#39;mismatch_class&#39;: no failures
+#&gt; &gt; &#39;mismatch_levels&#39;: no failures
+#&gt; &gt; &#39;new_variable&#39;: junk
+#&gt; &gt; &#39;outside_range&#39;: Sepal.Width[row(s): #1, #4, #7, #23, #34, #39],
+#&gt; Petal.Width[row(s): #6, #15, #21, #32, #48]
+#&gt; &gt; &#39;new_level&#39;: no failures
+#&gt; &gt; &#39;new_NA&#39;: Petal.Length[row(s): #5, #12, #36, #39, #40]
+#&gt; &gt; &#39;new_text&#39;: no failures
+#&gt; 
+#&gt; Test descriptions:
+#&gt; &#39;missing_variable&#39;: variable observed in training data but missing in new data
+#&gt; &#39;mismatch_class&#39;: &#39;class&#39; in new data does not match &#39;class&#39; in training data
+#&gt; &#39;mismatch_levels&#39;: &#39;levels&#39; in new data and training data are not identical
+#&gt; &#39;new_variable&#39;: variable observed in new data but not in training data
+#&gt; &#39;outside_range&#39;: value in new data outside recorded range in training data
+#&gt; &#39;new_level&#39;: new &#39;level&#39; in new data compared to training data
+#&gt; &#39;new_NA&#39;: NA observed in new data but not in training data
+#&gt; &#39;new_text&#39;: new text in new data compared to training data
+#&gt; 
+#&gt; [STOP]</code></pre>
+<p>As you can see, we are in a lot of trouble here. All rows failed, because
+a new variable (<code>junk</code>), that did not appear in the training data, was
+suddenly observed in new data. By assumption this invalidates all rows.</p>
+<p>Besides from that, some rows failed, because values <code>Inf</code> and <code>-Inf</code> were outside
+the recorded range in the training data for variables <code>Sepal.Width</code> and
+<code>Petal.Width</code>. Also, a handful of <code>NA</code> values were encountered in new data
+for <code>Petal.Length</code>. This is a new phenomenon compared to the training data,
+where no <code>NA</code> values were observed.</p>
+</div>
+<div id="extract-test-results" class="section level3">
+<h3>Extract test results</h3>
+<p><code>recorder</code> allows you extract the results of the validation tests in a number
+of ways.</p>
+<div id="get-failed-tests-as-data.frame" class="section level4">
+<h4>Get failed tests as data.frame</h4>
+<p>You might want to extract the results as a data.frame with the results of the
+(failed) tests as columns. To do this, invoke <code>get_failed_tests()</code> on
+<code>playback</code>:</p>
+<pre class="r"><code>knitr::kable(head(get_failed_tests(playback), 15))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">outside_range.Sepal.Width</th>
+<th align="left">outside_range.Petal.Width</th>
+<th align="left">new_NA.Petal.Length</th>
+<th align="left">new_variable.junk</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="get-failed-tests-as-character" class="section level4">
+<h4>Get failed tests as character</h4>
+<p>It can also be useful to get the results of the (failed) tests as a string with
+one entry per row in new data, where names of the failed tests for the given
+row are concatenated.</p>
+<pre class="r"><code>head(get_failed_tests_string(playback))
+#&gt; [1] &quot;outside_range.Sepal.Width;new_variable.junk;&quot;
+#&gt; [2] &quot;new_variable.junk;&quot;                          
+#&gt; [3] &quot;new_variable.junk;&quot;                          
+#&gt; [4] &quot;outside_range.Sepal.Width;new_variable.junk;&quot;
+#&gt; [5] &quot;new_NA.Petal.Length;new_variable.junk;&quot;      
+#&gt; [6] &quot;outside_range.Petal.Width;new_variable.junk;&quot;</code></pre>
+</div>
+<div id="get-clean-rows" class="section level4">
+<h4>Get clean rows</h4>
+<p>As a third option you can extract a logical vector, that indicates which rows,
+that passed the validation tests.</p>
+<pre class="r"><code>get_clean_rows(playback)
+#&gt;  [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+#&gt; [12] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+#&gt; [23] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+#&gt; [34] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+#&gt; [45] FALSE FALSE FALSE FALSE FALSE FALSE</code></pre>
+<p><code>TRUE</code> means, that a given row is clean and has passed all tests, <code>FALSE</code>
+on the other hand implies that a given row failed one or more tests.</p>
+<p>In this case, all rows are invalid due to the strange column
+<code>junk</code>, that appears in the new data (you might think, this is a strict rule,
+but it is consistent nonetheless).</p>
+</div>
+</div>
+<div id="ignore-specific-test-results" class="section level3">
+<h3>Ignore specific test results</h3>
+<p>It might be, that the user - for various reasons - wants to ignore one or more
+of the failed tests. You can handle this easily with <code>recorder</code>, whenever you
+invoke one of the functions <code>get_clean_rows()</code>, <code>get_failed_tests()</code> or
+<code>get_failed_tests_string()</code>.</p>
+<div id="ignore-test-results-from-specific-tests" class="section level4">
+<h4>Ignore test results from specific tests</h4>
+<p>Let us assume, that we do not care about, if there is a new column in
+the new data, that was not observed in the training data. The results of a
+specific test can be ignored with the <code>ignore_tests</code> argument.</p>
+<p>Let us try it out and ignore the results of the <code>new_variable</code> validation test.</p>
+<pre class="r"><code>get_clean_rows(playback, ignore_tests = &quot;new_variable&quot;)
+#&gt;  [1] FALSE  TRUE  TRUE FALSE FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE
+#&gt; [12] FALSE  TRUE  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE
+#&gt; [23] FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE
+#&gt; [34] FALSE  TRUE FALSE  TRUE  TRUE FALSE FALSE  TRUE  TRUE  TRUE  TRUE
+#&gt; [45]  TRUE  TRUE  TRUE FALSE  TRUE  TRUE</code></pre>
+<p>According to this - less restrictive - selection, 35
+of the new observations are now valid.</p>
+</div>
+<div id="ignore-test-results-from-tests-of-specific-columns" class="section level4">
+<h4>Ignore test results from tests of specific columns</h4>
+<p>Maybe you - for some reason - do not care about the tests results for a specific
+column. You can ignore results from tests of a specific variable with the
+<code>ignore_cols</code> argument. Let us go ahead and suppress the test results from
+tests of the <code>Petal.Length</code> variable.</p>
+<pre class="r"><code>get_clean_rows(playback, 
+               ignore_tests = &quot;new_variable&quot;,
+               ignore_cols = &quot;Petal.Length&quot;)
+#&gt;  [1] FALSE  TRUE  TRUE FALSE  TRUE FALSE FALSE  TRUE  TRUE  TRUE  TRUE
+#&gt; [12]  TRUE  TRUE  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE
+#&gt; [23] FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE
+#&gt; [34] FALSE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE
+#&gt; [45]  TRUE  TRUE  TRUE FALSE  TRUE  TRUE</code></pre>
+<p>Now, with this modification a total of 39
+of the new observations are now valid.</p>
+</div>
+<div id="ignore-test-results-from-specific-tests-of-specific-columns" class="section level4">
+<h4>Ignore test results from specific tests of specific columns</h4>
+<p>It is also possible to ignore the test results of specific tests of specific
+columns with the <code>ignore_combinations</code> argument. Let us try to ignore the
+<code>outside_range</code> test, but only for the <code>Sepal.Width</code> variable.</p>
+<pre class="r"><code>knitr::kable(head(get_failed_tests(playback, 
+                                   ignore_tests = &quot;new_variable&quot;,
+                                   ignore_cols = &quot;Petal.Length&quot;,
+                                   ignore_combinations = list(outside_range = &quot;Sepal.Width&quot;)),
+                  15))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">outside_range.Petal.Width</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="left">TRUE</td>
+</tr>
+</tbody>
+</table>
+<p>As you see - with this additional removal - the only test failures that remain
+are the ones from the <code>outside_range</code> test of the <code>Petal.Width</code> variable.</p>
+<p>That is it, I hope, that you will enjoy the <code>recorder</code> package :)</p>
+<p><span style="color:red"><strong>[STOP]</strong></span></p>
+</div>
+</div>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+

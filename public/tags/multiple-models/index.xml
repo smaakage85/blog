@@ -17,19 +17,37 @@
       <pubDate>Sat, 14 Jul 2018 00:00:00 +0000</pubDate>
       
       <guid>/2018/07/14/modelgrid-a-framework-for-creating-managing-and-training-multiple-models/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://cran.r-project.org/web/packages/modelgrid/index.html&#34;&gt;&lt;code&gt;modelgrid&lt;/code&gt;&lt;/a&gt; is a new package of mine, which has just made its way on to CRAN. &lt;code&gt;modelgrid&lt;/code&gt; offers a minimalistic but very flexible framework to create, manage and train a portfolio of &lt;a href=&#34;https://cran.r-project.org/web/packages/modelgrid/index.html&#34;&gt;&lt;code&gt;caret&lt;/code&gt;&lt;/a&gt; models. Note, you should already be fairly familiar with the &lt;code&gt;caret&lt;/code&gt; package before giving &lt;code&gt;modelgrid&lt;/code&gt; a spin.&lt;/p&gt;
-&lt;p&gt;Below I describe the key concept behind &lt;code&gt;modelgrid&lt;/code&gt; as well as the features of &lt;code&gt;modelgrid&lt;/code&gt; divided into three main categories:&lt;/p&gt;
+      <description>&lt;p&gt;&lt;a href=&#34;https://cran.r-project.org/web/packages/modelgrid/index.html&#34;&gt;&lt;code&gt;modelgrid&lt;/code&gt;&lt;/a&gt; is
+a new package of mine, which has just made its way on to CRAN.
+&lt;code&gt;modelgrid&lt;/code&gt; offers a minimalistic but very flexible framework to create, manage
+and train a portfolio of &lt;a href=&#34;https://cran.r-project.org/web/packages/modelgrid/index.html&#34;&gt;&lt;code&gt;caret&lt;/code&gt;&lt;/a&gt;
+models. Note, you should already be fairly familiar with the &lt;code&gt;caret&lt;/code&gt; package
+before giving &lt;code&gt;modelgrid&lt;/code&gt; a spin.&lt;/p&gt;
+&lt;p&gt;Below I describe the key concept behind &lt;code&gt;modelgrid&lt;/code&gt; as well as the features of
+&lt;code&gt;modelgrid&lt;/code&gt; divided into three main categories:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Creating a model grid&lt;/li&gt;
 &lt;li&gt;Training a model grid&lt;/li&gt;
 &lt;li&gt;Editing and removing models from a model grid&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;After reading this post you should be able to grind models like never before using the &lt;code&gt;modelgrid&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;After reading this post you should be able to grind models like never before
+using the &lt;code&gt;modelgrid&lt;/code&gt;.&lt;/p&gt;
 &lt;div id=&#34;key-concept-behind-the-model-grid&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Key concept behind the model grid&lt;/h2&gt;
-&lt;p&gt;When facing a Machine Learning problem, you typically want to try out a lot of models in order to find out, what works and what does not. But how can we manage these experiments in a structured, simple and transparent way? You guessed it - by using the &lt;code&gt;modelgrid&lt;/code&gt; package (and yes, I am already familiar with the &lt;code&gt;caretEnsemble&lt;/code&gt; package, but I wanted something, that was more flexible and easier/more intuitive to work with. Also I wanted a framework, that was pipe-friendly).&lt;/p&gt;
-&lt;p&gt;A tuning grid consists of combinations of hyperparameters for a specific model. A model grid is just an extension of that concept in the sense that it consists of - potentially many - models, each with their own tuning grid. Basically the model grid is built by providing a set of shared settings, that by default will apply to all models within the model grid, and defining the settings for the individual models in the model grid.&lt;/p&gt;
-&lt;p&gt;You can pre-allocate an empty model grid with the constructor function &lt;code&gt;model_grid&lt;/code&gt; and take a look at the structure.&lt;/p&gt;
+&lt;p&gt;When facing a Machine Learning problem, you typically want to try out a lot of
+models in order to find out, what works and what does not. But how can we manage
+these experiments in a structured, simple and transparent way? You guessed it -
+by using the &lt;code&gt;modelgrid&lt;/code&gt; package (and yes, I am already familiar with the &lt;code&gt;caretEnsemble&lt;/code&gt;
+package, but I wanted something, that was more flexible and easier/more intuitive
+to work with. Also I wanted a framework, that was pipe-friendly).&lt;/p&gt;
+&lt;p&gt;A tuning grid consists of combinations of hyperparameters for a specific model.
+A model grid is just an extension of that concept in the sense that it
+consists of - potentially many - models, each with their own tuning grid.
+Basically the model grid is built by providing a set of shared settings, that by
+default will apply to all models within the model grid, and defining the settings
+for the individual models in the model grid.&lt;/p&gt;
+&lt;p&gt;You can pre-allocate an empty model grid with the constructor function
+&lt;code&gt;model_grid&lt;/code&gt; and take a look at the structure.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(modelgrid)
 mg &amp;lt;- model_grid()
 
@@ -47,14 +65,27 @@ mg
 #&amp;gt; [1] &amp;quot;model_grid&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;An object belonging to the &lt;code&gt;model_grid&lt;/code&gt; class has three components:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;code&gt;shared_settings&lt;/code&gt;: these are the settings, that will be shared by all models in the model grid by default. Generally, it makes sense to keep some settings fixed for all models, e.g. the choice of target variable, features, resampling scheme and sometimes also preprocessing options. By providing them as shared settings the user avoids redundant code.&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;models&lt;/code&gt;: every individual model specification added to the model grid will be an element in this list. The individual model specification consists of settings that uniquely identify the indvidual model. If a setting has been set both as part of the shared settings and the settings of a given individual model specification, the setting from the individual model specification will apply for that given model.&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;model_fits&lt;/code&gt;: this element contains the fitted models (one for each individual model specification), once the &lt;code&gt;model_grid&lt;/code&gt; has been trained.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;shared_settings&lt;/code&gt;: these are the settings, that will be shared by all models
+in the model grid by default. Generally, it makes sense to keep some settings
+fixed for all models, e.g. the choice of target variable, features, resampling scheme
+and sometimes also preprocessing options. By providing them as shared settings
+the user avoids redundant code.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;models&lt;/code&gt;: every individual model specification added to the model grid will be
+an element in this list. The individual model specification consists of settings
+that uniquely identify the indvidual model. If a setting has been set both as part
+of the shared settings and the settings of a given individual model specification,
+the setting from the individual model specification will apply for that given
+model.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;model_fits&lt;/code&gt;: this element contains the fitted models (one for each individual
+model specification), once the &lt;code&gt;model_grid&lt;/code&gt; has been trained.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 &lt;div id=&#34;creating-a-model-grid&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Creating a model grid&lt;/h2&gt;
-&lt;p&gt;The first natural step of setting up the model grid is to define, which settings should be shared by all models by default. We will use the &lt;code&gt;GermanCredit&lt;/code&gt; data set from the &lt;code&gt;caret&lt;/code&gt; package as example data and do just that with the &lt;code&gt;share_settings&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;The first natural step of setting up the model grid is to define, which settings
+should be shared by all models by default. We will use the &lt;code&gt;GermanCredit&lt;/code&gt; data set
+from the &lt;code&gt;caret&lt;/code&gt; package as example data and do just that with the &lt;code&gt;share_settings&lt;/code&gt;
+function.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(magrittr)
 library(caret)
 library(dplyr)
@@ -81,7 +112,11 @@ mg &amp;lt;-
 purrr::map_chr(mg$shared_settings, class)
 #&amp;gt;            y            x      preProc       metric    trControl 
 #&amp;gt;     &amp;quot;factor&amp;quot; &amp;quot;data.frame&amp;quot;  &amp;quot;character&amp;quot;  &amp;quot;character&amp;quot;       &amp;quot;list&amp;quot;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;The &lt;code&gt;shared_settings&lt;/code&gt; component of the model grid is now populated. In order to complete the model grid we must define a set of individual model specifications, that we would like to give a shot. A common choice of baseline model could be a simple parametric model e.g. a Generalized Linear Model. The model specification is added to the model grid with the &lt;code&gt;add_model&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;shared_settings&lt;/code&gt; component of the model grid is now populated. In order to complete
+the model grid we must define a set of individual model specifications, that
+we would like to give a shot. A common choice of baseline model could be
+a simple parametric model e.g. a Generalized Linear Model. The model specification
+is added to the model grid with the &lt;code&gt;add_model&lt;/code&gt; function.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mg &amp;lt;- 
   mg %&amp;gt;%
   add_model(model_name = &amp;quot;Logistic Regression Baseline&amp;quot;,
@@ -97,9 +132,16 @@ mg$models
 #&amp;gt; 
 #&amp;gt; Family: binomial 
 #&amp;gt; Link function: logit&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;code&gt;model_grid&lt;/code&gt; requires a (unique) name for each individual model specification, so I named this one ‘Logistic Regression Baseline’. If the user does not provide a name, a generic name - ‘Model[int]’ - is generated automatically.&lt;/p&gt;
-&lt;p&gt;This is all it takes to create the smallest possible model grid with only one unique model configuration. The model grid can be trained with the &lt;code&gt;train&lt;/code&gt; function. For more on this go to ‘Training a model grid’.&lt;/p&gt;
-&lt;p&gt;But a model grid with only one model specification is obviously not a really interesting use case. Let us insert another two model specifications into the model grid: a set of logistic regression models, only this time with the features being preprocessed with Principal Component Analysis.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;model_grid&lt;/code&gt; requires a (unique) name for each individual model specification, so I
+named this one ‘Logistic Regression Baseline’. If the user does not provide a name,
+a generic name - ‘Model[int]’ - is generated automatically.&lt;/p&gt;
+&lt;p&gt;This is all it takes to create the smallest possible model grid with only one unique
+model configuration. The model grid can be trained with the &lt;code&gt;train&lt;/code&gt; function. For
+more on this go to ‘Training a model grid’.&lt;/p&gt;
+&lt;p&gt;But a model grid with only one model specification is obviously not a really interesting
+use case. Let us insert another two model specifications into the model grid: a
+set of logistic regression models, only this time with the features being preprocessed
+with Principal Component Analysis.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mg &amp;lt;- 
   mg %&amp;gt;%
   add_model(model_name = &amp;quot;Logistic Regression PCA&amp;quot;,
@@ -155,15 +197,25 @@ mg$models
 #&amp;gt; $`Logistic Regression PCA 98e-2`$custom_control$preProcOptions
 #&amp;gt; $`Logistic Regression PCA 98e-2`$custom_control$preProcOptions$thresh
 #&amp;gt; [1] 0.98&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;You can of course add as many models as you like to the model grid with the &lt;code&gt;add_model&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;You can of course add as many models as you like to the model grid with
+the &lt;code&gt;add_model&lt;/code&gt; function.&lt;/p&gt;
 &lt;/div&gt;
 &lt;div id=&#34;training-a-model-grid&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Training a model grid&lt;/h2&gt;
-&lt;p&gt;The models from a model grid can be trained with the &lt;code&gt;train&lt;/code&gt; function from the &lt;code&gt;caret&lt;/code&gt; package, for which I have implemented a S3 method for the &lt;code&gt;model_grid&lt;/code&gt; class.&lt;/p&gt;
-&lt;p&gt;When you call &lt;code&gt;train&lt;/code&gt; with a &lt;code&gt;model_grid&lt;/code&gt;, all of the individual model specifications are consolidated with the shared settings into complete &lt;code&gt;caret&lt;/code&gt; model specifications, which are then trained one by one with &lt;code&gt;caret&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The models from a model grid can be trained with the &lt;code&gt;train&lt;/code&gt; function
+from the &lt;code&gt;caret&lt;/code&gt; package, for which I have implemented a S3 method for the
+&lt;code&gt;model_grid&lt;/code&gt; class.&lt;/p&gt;
+&lt;p&gt;When you call &lt;code&gt;train&lt;/code&gt; with a &lt;code&gt;model_grid&lt;/code&gt;, all of the individual model
+specifications are consolidated with the shared settings into complete
+&lt;code&gt;caret&lt;/code&gt; model specifications, which are then trained one by one with
+&lt;code&gt;caret&lt;/code&gt;.&lt;/p&gt;
 &lt;div id=&#34;consolidation-of-settings-into-complete-model-specifications&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;Consolidation of settings into complete model specifications&lt;/h3&gt;
-&lt;p&gt;For a given model the model settings are consolidated with the &lt;code&gt;consolidate_model&lt;/code&gt; function. Let us see how this works with the three models. For the baseline model there is no overlap between the shared settings and the settings in the individual model specification, and hence the settings will just be appended into one configuration.&lt;/p&gt;
+&lt;p&gt;For a given model the model settings are consolidated with the
+&lt;code&gt;consolidate_model&lt;/code&gt; function. Let us see how this works with the three models.
+For the baseline model there is no overlap between the shared settings and
+the settings in the individual model specification, and hence the settings will
+just be appended into one configuration.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# there are no conflicts.
 dplyr::intersect(names(mg$shared_settings), names(mg$models$`Logistic Regression Baseline`))
 #&amp;gt; character(0)
@@ -178,7 +230,11 @@ consolidate_model(
 #&amp;gt;  &amp;quot;character&amp;quot;     &amp;quot;family&amp;quot;     &amp;quot;factor&amp;quot; &amp;quot;data.frame&amp;quot;  &amp;quot;character&amp;quot; 
 #&amp;gt;       metric    trControl 
 #&amp;gt;  &amp;quot;character&amp;quot;       &amp;quot;list&amp;quot;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;In case the same setting has been specified both in the shared settings of the model grid and in the individual settings for a specific model, the individual setting will apply. This is the case for the model ‘Logistic Regression PCA’, where the ‘preProc’ argument has also been defined in the model specific configuration.&lt;/p&gt;
+&lt;p&gt;In case the same setting has been specified both in the shared settings of the
+model grid and in the individual settings for a specific model, the individual
+setting will apply. This is the case for the model ‘Logistic Regression PCA’,
+where the ‘preProc’ argument has also been defined in the model specific
+configuration.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# the &amp;#39;preProc&amp;#39; setting is defined both in the shared and model specific settings.
 dplyr::intersect(names(mg$shared_settings), names(mg$models$`Logistic Regression PCA`))
 #&amp;gt; [1] &amp;quot;preProc&amp;quot;
@@ -195,8 +251,14 @@ consolidate_model(
   ) %&amp;gt;%
   magrittr::extract2(&amp;quot;preProc&amp;quot;)
 #&amp;gt; [1] &amp;quot;nzv&amp;quot;    &amp;quot;center&amp;quot; &amp;quot;scale&amp;quot;  &amp;quot;pca&amp;quot;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Also, if the ‘trControl’ argument is defined as part of the shared settings, the subsettings of ‘trControl’ can be modified for a specific model with the special setting ‘custom_control’ (which itself is given as an explicit argument to the &lt;code&gt;add_model&lt;/code&gt; function) in the model specific settings.&lt;/p&gt;
-&lt;p&gt;For the model ‘Logistic Regression PCA 98e-2’, the preprocessing options for PCA were adjusted with ‘custom_control’. When the model is consolidated, the model specific customizations of subsettings of the shared ‘trControl’ argument will apply.&lt;/p&gt;
+&lt;p&gt;Also, if the ‘trControl’ argument is defined as part of the shared settings, the
+subsettings of ‘trControl’ can be modified for a specific model with the special
+setting ‘custom_control’ (which itself is given as an explicit argument to the
+&lt;code&gt;add_model&lt;/code&gt; function) in the model specific settings.&lt;/p&gt;
+&lt;p&gt;For the model ‘Logistic Regression PCA 98e-2’, the preprocessing options for PCA
+were adjusted with ‘custom_control’. When the model is consolidated, the model
+specific customizations of subsettings of the shared ‘trControl’ argument will
+apply.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# the &amp;#39;trControl$preProcOptions$thresh&amp;#39; setting is defined in the shared
 # settings but customized in the model specific settings.
 mg$shared_settings$trControl$preProcOptions$thresh
@@ -214,8 +276,12 @@ consolidate_model(
 &lt;/div&gt;
 &lt;div id=&#34;model-training&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;Model training&lt;/h3&gt;
-&lt;p&gt;When calling the &lt;code&gt;train&lt;/code&gt; function, the &lt;code&gt;consolidate_model&lt;/code&gt; function is called under the hood with all of the individual models and the shared settings, and a set of complete &lt;code&gt;caret&lt;/code&gt; model specifications is generated - one for each individual model specification.&lt;/p&gt;
-&lt;p&gt;Afterwards the models are trained one by one with &lt;code&gt;caret&lt;/code&gt;, and the fitted models are saved in the &lt;code&gt;model_fits&lt;/code&gt; component of the model grid.&lt;/p&gt;
+&lt;p&gt;When calling the &lt;code&gt;train&lt;/code&gt; function, the &lt;code&gt;consolidate_model&lt;/code&gt; function is called
+under the hood with all of the individual models and the shared settings, and
+a set of complete &lt;code&gt;caret&lt;/code&gt; model specifications is generated - one for each
+individual model specification.&lt;/p&gt;
+&lt;p&gt;Afterwards the models are trained one by one with &lt;code&gt;caret&lt;/code&gt;, and the fitted
+models are saved in the &lt;code&gt;model_fits&lt;/code&gt; component of the model grid.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# train models from model grid.
 mg &amp;lt;- train(mg)
 
@@ -229,7 +295,9 @@ mg$model_fits %&amp;gt;%
   caret::resamples(.) %&amp;gt;%
   lattice::bwplot(.)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;&lt;img src=&#34;/post/2018-07-14-modelgrid-a-framework-for-creating-managing-and-training-multiple-models_files/figure-html/unnamed-chunk-9-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;If we now add an additional models to the model grid, and call &lt;code&gt;train&lt;/code&gt; on the model grid again, only the new models (those that do not yet have a fit) will be trained by default.&lt;/p&gt;
+&lt;p&gt;If we now add an additional models to the model grid, and call &lt;code&gt;train&lt;/code&gt; on the model
+grid again, only the new models (those that do not yet have a fit) will be trained
+by default.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# train models from model grid.
 mg &amp;lt;- 
   mg %&amp;gt;%
@@ -241,17 +309,21 @@ mg$model_fits %&amp;gt;%
   caret::resamples(.) %&amp;gt;%
   lattice::bwplot(.)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;&lt;img src=&#34;/post/2018-07-14-modelgrid-a-framework-for-creating-managing-and-training-multiple-models_files/figure-html/unnamed-chunk-10-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;If you call &lt;code&gt;train&lt;/code&gt; with the ‘train_all’ argument set to &lt;code&gt;TRUE&lt;/code&gt;, all models will be trained regardless.&lt;/p&gt;
+&lt;p&gt;If you call &lt;code&gt;train&lt;/code&gt; with the ‘train_all’ argument set to &lt;code&gt;TRUE&lt;/code&gt;, all models will
+be trained regardless.&lt;/p&gt;
 &lt;/div&gt;
 &lt;div id=&#34;support-for-all-train-interfaces&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;Support for all train interfaces&lt;/h3&gt;
-&lt;p&gt;The training of a &lt;code&gt;model_grid&lt;/code&gt; supports both the explicit ‘x’, ‘y’ interface to train, the ‘formula’ interface and last but not least the new powerful ‘recipe’ interface. Let us try out the latter. First we will create a basic recipe.&lt;/p&gt;
+&lt;p&gt;The training of a &lt;code&gt;model_grid&lt;/code&gt; supports both the explicit ‘x’, ‘y’ interface to train,
+the ‘formula’ interface and last but not least the new powerful ‘recipe’ interface.
+Let us try out the latter. First we will create a basic recipe.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# create basic recipe.
 library(recipes)
 rec &amp;lt;- 
   recipe(GermanCredit, formula = Class ~ .) %&amp;gt;%
   step_nzv(all_predictors())&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;With that as a starting point I will create and train a minimal model grid as an example. I will tweak the recipe for one of the models.&lt;/p&gt;
+&lt;p&gt;With that as a starting point I will create and train a minimal model grid
+as an example. I will tweak the recipe for one of the models.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mg_rec &amp;lt;-
   model_grid() %&amp;gt;%
   share_settings(
@@ -289,7 +361,10 @@ mg_rec$model_fits %&amp;gt;%
 &lt;/div&gt;
 &lt;div id=&#34;editing-and-removing-models&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Editing and removing models&lt;/h2&gt;
-&lt;p&gt;&lt;code&gt;modelgrid&lt;/code&gt; has a couple of functions, that makes it easy to work iteratively with the model specifications in a model grid. If you want to modify an existing model configuration, please use the &lt;code&gt;edit_model&lt;/code&gt; function. Below I use it to modify one of the generalized linear models.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;modelgrid&lt;/code&gt; has a couple of functions, that makes it easy to work iteratively
+with the model specifications in a model grid. If you want to modify an
+existing model configuration, please use the &lt;code&gt;edit_model&lt;/code&gt; function. Below
+I use it to modify one of the generalized linear models.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# existing model configuration.
 mg$models$`Logistic Regression PCA`
 #&amp;gt; $method
@@ -323,8 +398,10 @@ mg$models$`Logistic Regression PCA`
 #&amp;gt; 
 #&amp;gt; $preProc
 #&amp;gt; [1] &amp;quot;nzv&amp;quot;    &amp;quot;center&amp;quot; &amp;quot;scale&amp;quot;  &amp;quot;ICA&amp;quot;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;As you see, when you modify an existing model specification, any corresponding fitted model is deleted, so that everything is in sync.&lt;/p&gt;
-&lt;p&gt;You can also remove a model specification (including any fitted model) from the model grid with the &lt;code&gt;remove_model&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;As you see, when you modify an existing model specification, any corresponding
+fitted model is deleted, so that everything is in sync.&lt;/p&gt;
+&lt;p&gt;You can also remove a model specification (including any fitted model) from
+the model grid with the &lt;code&gt;remove_model&lt;/code&gt; function.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;names(mg$models)
 #&amp;gt; [1] &amp;quot;Funky Forest&amp;quot;                  &amp;quot;Logistic Regression Baseline&amp;quot; 
 #&amp;gt; [3] &amp;quot;Logistic Regression PCA 98e-2&amp;quot; &amp;quot;Logistic Regression PCA&amp;quot;
