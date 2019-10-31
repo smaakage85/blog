@@ -1,0 +1,206 @@
+---
+title: '''dockr'': easy containerization for R'
+author: smaakagen
+date: '2019-11-01'
+slug: dockr-easy-containerization-for-r
+categories: ["R"]
+tags: ["containerization", "container", "docker", "machine learning", 
+       "predictive modeling", "statistics", "data analysis", "data science"]
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+<img src="https://github.com/smaakage85/dockr/blob/master/man/figures/dockr.png?raw=true" align="right" height=250/>
+
+## `dockr` now on CRAN
+
+`dockr` 0.8.4 is now available on CRAN. `dockr` is a minimal toolkit to build a 
+lightweight Docker container image for your R package, in which the package 
+itself is available. The Docker image seeks to mirror your R session as close as 
+possible with respect to R specific dependencies. Both dependencies on CRAN 
+R packages as well as local non-CRAN R packages will be included in the Docker 
+container image.
+
+If you want to know, how Docker works, and why you should consider using Docker,
+please take a look at the [Docker website](https://www.docker.com/why-docker).
+
+<iframe src="https://open.spotify.com/embed/track/5IR7Ui6MB7MrFZfF5hsoIH" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+
+## Installation
+
+Install the development version of `dockr` with:
+
+```{r install_github, eval = FALSE}
+remotes::install_github("smaakage85/dockr")
+```
+
+Or install the version released on CRAN: 
+
+```{r install_cran, eval = FALSE}
+install.packages("dockr")
+```
+
+## Workflow
+
+When you work on an R project, it is often desirable to organize the code in the
+R package structure. `dockr` facilitates easy creation of a Docker container 
+image that mirrors your current R session and includes all of the R dependencies 
+needed to run your R package. 
+
+First, load the `dockr` package.
+
+```{r load_package, eval = TRUE}
+library(dockr)
+```
+
+```{r setup_cran, echo = FALSE}
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+```
+
+In order do create the files, that constitute the Docker image, simply invoke 
+the `prepare_docker_image()` function and point to the folder with your package. 
+
+The workflow of `prepare_docker_image()` is summarized below:
+
+1. Build and install the package on your system
+2. Identify R package dependencies of the package
+3. Detect the version numbers of the loaded and installed versions of these 
+packages on your system
+4. Write Dockerfile and create all other files needed to build the Docker image
+
+Now, I will let `dockr` do its magic and create the files for a Docker image
+container, in which `dockr` is installed together with all of the R package 
+dependencies, `dockr` needs to run.
+
+Beware that the files are created as side-effects of the function call. Since
+my 'dockr' package lives in a folder called `docker`, I call the function like
+this:
+
+```{r create_image, warning = FALSE, message = FALSE}
+image_dockr <- prepare_docker_image("~/docker", 
+                                    dir_image = "~",
+                                    dir_install = "auto")
+```
+
+Note, argument 'dir_image' decides, where the files for the docker image will
+be saved. 'dir_install' is the directory, where your package will be installed
+on your system. You can choose to install the package in a temporary folder 
+by setting  `dir_install = tempdir()`.
+
+Great, all necessary files for the Docker image have been created, and you 
+can build the Docker image right away by following the instructions. It is as 
+easy as that! Yeah!
+
+## Files for Docker image
+
+Let us just take a quick look into the folder with the files for the Docker 
+image to see the works of `dockr`.
+
+```{r lookup_files_image}
+list.files(image_dockr$paths$dir_image)
+```
+
+It contains a Dockerfile and a folder named 'source_packages'.
+
+### Dockerfile
+
+The resulting Dockerfile can be printed with the `print_file()` function, that
+comes with `dockr`:
+
+```{r print_dockerfile}
+print_file(image_dockr$paths$path_Dockerfile)
+```
+
+As you see, the versions of the R packages, that will be installed in the Docker 
+container image, are all given explicitly. They will mirror the versions of the
+dependencies, that are in fact loaded or installed on your system. In this way,
+the Docker container image seeks to reflect your current R session as close as 
+possible and by doing so create an environment, where you will be able to 
+reproduce results from your current R session. 
+
+Also note, that CRAN R packages will be installed from relevant 
+[MRAN snapshots](https://mran.microsoft.com/) - using the 
+`remotes::install_version()` function.
+
+### Folder with Source Packages
+
+The 'source_packages' folder contains the local (non-CRAN) packages, that have 
+to be installed in the Docker container image in order for `dockr` to run.
+
+Since `dockr` does not depend on any local (non-CRAN) packages, 
+`source_packages` only contains a source package version of `dockr` itself, 
+i.e.:
+
+```{r lookup_files_src}
+list.files(image_dockr$paths$dir_source_packages)
+```
+
+## How to edit Dockerfile further
+
+If there is need for adding additional lines to/editing the Dockerfile (e.g.
+if you have to install any non-R [dependencies](#nonr), this can 
+be achieved with the `write_lines_to_file()` function. `write_lines_to_file()` 
+enables you to add new lines to the beginning or the end of the Dockerfile. 
+
+Let us try it out and write a couple of additional lines to the Dockerfile.
+
+```{r add_lines}
+# write three lines to beginning of file.
+write_lines_to_file(c("# set maintainer",
+                    "MAINTAINER Lars KJELDGAARD <lars_kjeldgaard@hotmail.com>", 
+                    ""),
+                    image_dockr$paths$path_Dockerfile,
+                    prepend = TRUE,
+                    print_file = FALSE)
+
+# write lines to the end of the file.
+write_lines_to_file(c("# check out smaakage85.netlify.com >:-]~~"),
+                    image_dockr$paths$path_Dockerfile,
+                    prepend = FALSE,
+                    print_file = FALSE)
+```
+
+Take a look at the resulting Dockerfile.
+
+```{r print_dockerfile_again}
+print_file(image_dockr$paths$path_Dockerfile)
+```
+
+## Dealing with local non-CRAN R package dependencies
+
+If your package depends on local non-CRAN R packages, `dockr` will also include
+these packages in the Docker container image. Local non-CRAN R packages must be
+available as source packages ([packageName]_[packageVersion].tar.gz) in one
+or more user specified local directories. These paths have to be specified in the
+'dir_src' argument, when invoking the `prepare_docker_image()`, e.g.: 
+
+```{r image_recorder, eval = FALSE}
+# image for my package 'recorder'.
+image_recorder <- prepare_docker_image("~/recorder",
+                                       dir_image = "~",
+                                       dir_install = "auto",
+                                       dir_src = c("~/src"))
+```
+
+Note, that you can store **multiple** versions of the same package in your local
+repos. In this way 'dockr' comes with a lot of flexibility.
+
+## What about non-R dependencies?
+
+`dockr` does _not_ deal with any non-R dependencies what so ever at this point. 
+In case that, for instance, your package has any Linux specific dependencies, 
+you will have to install them yourself in the Docker container image. 
+
+## Contact
+
+I hope, that you will find `dockr` useful.
+
+Please direct any questions and feedbacks to [me](mailto:lars_kjeldgaard@hotmail.com)!
+
+If you want to contribute, open a [PR](https://github.com/smaakage85/dockr/pulls).
+
+If you encounter a bug or want to suggest an enhancement, please [open an issue](https://github.com/smaakage85/dockr/issues).
+
+Best, 
+smaakagen

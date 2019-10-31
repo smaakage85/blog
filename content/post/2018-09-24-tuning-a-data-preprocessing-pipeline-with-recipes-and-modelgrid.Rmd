@@ -114,10 +114,10 @@ that variables with zero variances should be removed.
 ```{r message = FALSE, warning = FALSE}
 library(recipes)
 initial_recipe <- recipe(training) %>%
-  add_role(Class, new_role = "outcome") %>%
-  add_role(Cell, new_role = "id variable") %>%
-  add_role(Case, new_role = "splitting indicator") %>%
-  add_role(-Class, -Cell, -Case, new_role = "predictor") %>%
+  update_role(Class, new_role = "outcome") %>%
+  update_role(Cell, new_role = "id variable") %>%
+  update_role(Case, new_role = "splitting indicator") %>%
+  update_role(-Class, -Cell, -Case, new_role = "predictor") %>%
   step_zv(all_predictors())
 ```
 
