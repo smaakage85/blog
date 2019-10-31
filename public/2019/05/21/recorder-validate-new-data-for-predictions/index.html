@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Hugo 0.46" />
+<meta name="generator" content="Hugo 0.59.0" />
 
 
 <title>recorder: Validate Predictors in New Data - pRopaganda by smaakagen</title>
@@ -75,7 +75,10 @@
     
 
     <div class="article-content">
-      <p><img src="https://github.com/smaakage85/recorder/blob/master/man/figures/logo.png?raw=true" align="right" height=250/></p>
+      
+
+
+<p><img src="https://github.com/smaakage85/recorder/blob/master/man/figures/logo.png?raw=true" align="right" height=250/></p>
 <p><code>recorder</code> 0.8.1 is now available on CRAN. <code>recorder</code> is a lightweight toolkit to
 validate new observations before computing their corresponding predictions with
 a predictive model.</p>
@@ -128,6 +131,7 @@ relevant statistics and meta data of the variables must first be learned
 (recorded) from the trainingdata of the model. This is done with the <code>record()</code>
 function.</p>
 <pre class="r"><code>library(recorder)
+#&gt; Warning: pakke &#39;recorder&#39; blev bygget under R version 3.6.1
 tape &lt;- record(data_training)
 #&gt; 
 #&gt; [RECORD]

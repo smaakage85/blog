@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Data Quality on pRopaganda by smaakagen</title>
+    <title>data quality on pRopaganda by smaakagen</title>
     <link>/tags/data-quality/</link>
-    <description>Recent content in Data Quality on pRopaganda by smaakagen</description>
+    <description>Recent content in data quality on pRopaganda by smaakagen</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 21 May 2019 00:00:00 +0000</lastBuildDate>
@@ -17,7 +16,10 @@
       <pubDate>Tue, 21 May 2019 00:00:00 +0000</pubDate>
       
       <guid>/2019/05/21/recorder-validate-new-data-for-predictions/</guid>
-      <description>&lt;p&gt;&lt;img src=&#34;https://github.com/smaakage85/recorder/blob/master/man/figures/logo.png?raw=true&#34; align=&#34;right&#34; height=250/&gt;&lt;/p&gt;
+      <description>
+
+
+&lt;p&gt;&lt;img src=&#34;https://github.com/smaakage85/recorder/blob/master/man/figures/logo.png?raw=true&#34; align=&#34;right&#34; height=250/&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;recorder&lt;/code&gt; 0.8.1 is now available on CRAN. &lt;code&gt;recorder&lt;/code&gt; is a lightweight toolkit to
 validate new observations before computing their corresponding predictions with
 a predictive model.&lt;/p&gt;
@@ -70,6 +72,7 @@ relevant statistics and meta data of the variables must first be learned
 (recorded) from the trainingdata of the model. This is done with the &lt;code&gt;record()&lt;/code&gt;
 function.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(recorder)
+#&amp;gt; Warning: pakke &amp;#39;recorder&amp;#39; blev bygget under R version 3.6.1
 tape &amp;lt;- record(data_training)
 #&amp;gt; 
 #&amp;gt; [RECORD]
