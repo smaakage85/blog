@@ -2,7 +2,7 @@
 title: '"trimmer" - trim an R object'
 author: smaakagen
 date: '2019-12-19'
-slug: recorder-validate-new-data-for-predictions
+slug: trimmer-trim-an-r-object
 categories: ["R"]
 tags: ["machine learning", "predictive modeling", "statistics",
        "data analysis", "data quality", "data validation",

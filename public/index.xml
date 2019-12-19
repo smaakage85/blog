@@ -13,10 +13,10 @@
     
     <item>
       <title>&#34;trimmer&#34; - trim an R object</title>
-      <link>/2019/12/19/recorder-validate-new-data-for-predictions/</link>
+      <link>/2019/12/19/trimmer-trim-an-r-object/</link>
       <pubDate>Thu, 19 Dec 2019 00:00:00 +0000</pubDate>
       
-      <guid>/2019/12/19/recorder-validate-new-data-for-predictions/</guid>
+      <guid>/2019/12/19/trimmer-trim-an-r-object/</guid>
       <description>&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/smaakage85/trimmer/master/man/figures/hex_trimmer.png&#34; align=&#34;right&#34; height=250/&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;trimmer&lt;/code&gt; 0.7.5 is now available on CRAN.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;trimmer&lt;/code&gt; is a lightweight toolkit to trim a (potentially big) R object without
