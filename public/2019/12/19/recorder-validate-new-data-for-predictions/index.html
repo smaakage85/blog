@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.45" />
+
+
+<title>&#34;trimmer&#34; - trim an R object - pRopaganda by smaakagen</title>
+<meta property="og:title" content="&#34;trimmer&#34; - trim an R object - pRopaganda by smaakagen">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About smaakagen</a></li>
+    
+    <li><a href="https://github.com/smaakage85/">GitHub</a></li>
+    
+    <li><a href="https://www.linkedin.com/in/lars-kjeldgaard-321b0351/">LinkedIn</a></li>
+    
+    <li><a href="https://rweekly.org/">R Weekly</a></li>
+    
+    <li><a href="https://www.r-bloggers.com/">R-bloggers</a></li>
+    
+    <li><a href="https://www.r-users.com/">R-users</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">8 min read</span>
+    
+
+    <h1 class="article-title">&#34;trimmer&#34; - trim an R object</h1>
+
+    
+    <span class="article-date">2019/12/19</span>
+    
+
+    <div class="article-content">
+      <p><img src="https://raw.githubusercontent.com/smaakage85/trimmer/master/man/figures/hex_trimmer.png" align="right" height=250/></p>
+<p><code>trimmer</code> 0.7.5 is now available on CRAN.</p>
+<p><code>trimmer</code> is a lightweight toolkit to trim a (potentially big) R object without
+breaking the results of a given function call, where the (trimmed) R object
+is given as argument.</p>
+<p>The <code>trim</code> function is the bread and butter of <code>trimmer</code>. It seeks to reduce
+the size of an R object by recursively removing elements from the object
+one-by-one. It does so in a ‘greedy’ fashion - it constantly tries to
+remove the element that uses the most memory.</p>
+<p>The trimming process is constrained by a reference function call. The trimming
+procedure will not allow elements to be removed from the object, that will
+cause results from the function call to diverge from the original results of
+the function call.</p>
+<iframe src="https://open.spotify.com/embed/track/3vrxyslwRtpdbFQYt7jsWt" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media">
+</iframe>
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>There can be many data reasons as to why, you might want to ‘trim’ an R object.</p>
+<p>A typical example could be a R model object. It will typically contain all kinds
+of (more or less useful) stuff and meta data with information about the model.
+You might want to try to reduce the size of the object for (memory) efficiency purposes,
+such that the model only contains only what is in fact needed to predict
+new observations - and <em>nothing</em> else!</p>
+</div>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>Install the development version of <code>trimmer</code> with:</p>
+<pre class="r"><code>remotes::install_github(&quot;smaakage85/trimmer&quot;)</code></pre>
+<p>Or install the version released on CRAN:</p>
+<pre class="r"><code>install.packages(&quot;trimmer&quot;)</code></pre>
+</div>
+<div id="trimming-process" class="section level2">
+<h2>Trimming Process</h2>
+<p>The trimming procedure - conducted with <code>trim()</code> - consists of the following steps:</p>
+<ol style="list-style-type: decimal">
+<li>Call the specified function with the object before trimming and save results for reference.</li>
+<li>Compute size of elements in the most shallow layer of object. These elements are the candidates for elimination.</li>
+<li>Identify the candidate element that uses most memory.</li>
+<li>Call function again, but this time with the element from step 3 removed from object.</li>
+<li>If results from function call are the same as in step 1, remove element from object. If results diverge, keep element - and expand the list with candidates for elimination with elements of most shallow layer of this object (if there are any).</li>
+<li>Repeat steps 3 to 5, until target size is reached or until no further
+elements can be removed without results from function call diverge.</li>
+</ol>
+</div>
+<div id="workflow-example" class="section level2">
+<h2>Workflow Example</h2>
+<p>Get ready by loading the package.</p>
+<pre class="r"><code>library(trimmer)</code></pre>
+<p>Train a model on the famous <code>mtcars</code> data set.</p>
+<pre class="r"><code># load training data.
+trn &lt;- datasets::mtcars
+
+# estimate model.
+mdl &lt;- lm(mpg ~ ., data = trn)</code></pre>
+<p>I want to trim the model object <code>mdl</code> as possible without affecting the predictions,
+computed with function <code>predict()</code>, for the resulting model.</p>
+<p>The trimming is then simply conducted by invoking:</p>
+<pre class="r"><code>mdl_trim &lt;- trim(obj = mdl,
+                 obj_arg_name = &quot;object&quot;,
+                 fun = predict,
+                 newdata = trn)
+#&gt; * Initial object size: 22.22 kB
+#&gt; Begin trimming object.
+#&gt; ~ Trying to remove element [[c(&#39;model&#39;)]], element size = 14.05 kB
+#&gt; v Element removed.
+#&gt; * Object size after removal: 18.19 kB [v4.03 kB]
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;)]], element size = 7.79 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;terms&#39;)]], element size = 7.63 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;,&#39;qr&#39;)]], element size = 6.66 kB
+#&gt; v Element removed.
+#&gt; * Object size after removal: 14.95 kB [v7.27 kB]
+#&gt; ~ Trying to remove element [[c(&#39;residuals&#39;)]], element size = 2.86 kB
+#&gt; v Element removed.
+#&gt; * Object size after removal: 14.53 kB [v7.7 kB]
+#&gt; ~ Trying to remove element [[c(&#39;fitted.values&#39;)]], element size = 2.86 kB
+#&gt; v Element removed.
+#&gt; * Object size after removal: 11.66 kB [v10.56 kB]
+#&gt; ~ Trying to remove element [[c(&#39;effects&#39;)]], element size = 1.4 kB
+#&gt; v Element removed.
+#&gt; * Object size after removal: 10.76 kB [v11.46 kB]
+#&gt; ~ Trying to remove element [[c(&#39;coefficients&#39;)]], element size = 1.09 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;call&#39;)]], element size = 728 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 10.09 kB [v12.14 kB]
+#&gt; ~ Trying to remove element [[c(&#39;xlevels&#39;)]], element size = 208 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 9.85 kB [v12.38 kB]
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;,&#39;qraux&#39;)]], element size = 176 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 9.62 kB [v12.61 kB]
+#&gt; ~ Trying to remove element [[c(&#39;assign&#39;)]], element size = 96 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 9.46 kB [v12.76 kB]
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;,&#39;pivot&#39;)]], element size = 96 B
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;rank&#39;)]], element size = 56 B
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;df.residual&#39;)]], element size = 56 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 9.31 kB [v12.91 kB]
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;,&#39;tol&#39;)]], element size = 56 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 9.17 kB [v13.06 kB]
+#&gt; Trimming completed.</code></pre>
+<p>And that’s it!</p>
+<p>Note, that I provide the <code>trim</code> function with the extra argument <code>newdata</code>, that
+is passed to the function call with <code>fun</code>. This means, that the trimming is
+constrained by, that the results of ‘fun’ (=<code>predict</code>) <em>MUST</em> be exactly the same
+on these data before and after the trimming.</p>
+<p>The trimmed model object now measures 9.17 kB. The original
+object measured 22.22 kB.</p>
+</div>
+<div id="set-target-size" class="section level2">
+<h2>Set Target Size</h2>
+<p>If you just want the object size to be below some threshold, you can set that
+as a criterion. The ‘trimming’ process will continue no further, when this
+threshold is reached. This approach can be time-saving compared to
+minimizing the object as much as possible (=default setting).</p>
+<pre class="r"><code>mdl_trim &lt;- trim(obj = mdl,
+                 obj_arg_name = &quot;object&quot;,
+                 fun = predict,
+                 newdata = trn,
+                 size_target = 0.015)
+#&gt; * Initial object size: 22.22 kB
+#&gt; * Target object size: &lt;= 15 kB
+#&gt; Begin trimming object.
+#&gt; ~ Trying to remove element [[c(&#39;model&#39;)]], element size = 14.05 kB
+#&gt; v Element removed.
+#&gt; * Object size after removal: 18.19 kB [v4.03 kB]
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;)]], element size = 7.79 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;terms&#39;)]], element size = 7.63 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;,&#39;qr&#39;)]], element size = 6.66 kB
+#&gt; v Element removed.
+#&gt; * Object size after removal: 14.95 kB [v7.27 kB]
+#&gt; Trimming completed.</code></pre>
+<p>With these settings, the trimmed model object measures 14.95 kB. The original
+object measured 22.22 kB.</p>
+</div>
+<div id="other-applications" class="section level2">
+<h2>Other Applications</h2>
+<p><code>trimmer</code> is compatible with all R objects, that inherit from the <code>list</code>
+class - not just R model objects - and all kinds of functions - not just the
+<code>predict</code> function. Hence <code>trimmer</code> is quite a flexible tool.</p>
+<p>To illustrate I will trim the same object but under the constraint, that the
+results from the <code>summary()</code> function must be preserved.</p>
+<pre class="r"><code>mdl_trim &lt;- trim(obj = mdl,
+                 obj_arg_name = &quot;object&quot;,
+                 fun = summary)
+#&gt; * Initial object size: 22.22 kB
+#&gt; Begin trimming object.
+#&gt; ~ Trying to remove element [[c(&#39;model&#39;)]], element size = 14.05 kB
+#&gt; v Element removed.
+#&gt; * Object size after removal: 18.19 kB [v4.03 kB]
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;)]], element size = 7.79 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;terms&#39;)]], element size = 7.63 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;,&#39;qr&#39;)]], element size = 6.66 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;residuals&#39;)]], element size = 2.86 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;fitted.values&#39;)]], element size = 2.86 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;effects&#39;)]], element size = 1.4 kB
+#&gt; v Element removed.
+#&gt; * Object size after removal: 17.42 kB [v4.81 kB]
+#&gt; ~ Trying to remove element [[c(&#39;coefficients&#39;)]], element size = 1.09 kB
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;call&#39;)]], element size = 728 B
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;xlevels&#39;)]], element size = 208 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 17.21 kB [v5.02 kB]
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;,&#39;qraux&#39;)]], element size = 176 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 16.94 kB [v5.28 kB]
+#&gt; ~ Trying to remove element [[c(&#39;assign&#39;)]], element size = 96 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 16.76 kB [v5.46 kB]
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;,&#39;pivot&#39;)]], element size = 96 B
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;rank&#39;)]], element size = 56 B
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;df.residual&#39;)]], element size = 56 B
+#&gt; x Element could not be removed.
+#&gt; ~ Trying to remove element [[c(&#39;qr&#39;,&#39;tol&#39;)]], element size = 56 B
+#&gt; v Element removed.
+#&gt; * Object size after removal: 16.65 kB [v5.58 kB]
+#&gt; Trimming completed.</code></pre>
+</div>
+<div id="other-notes" class="section level2">
+<h2>Other Notes</h2>
+<p>You can choose, that certain elements <em>MUST NOT</em> be removed during the trimming process. Do this with the <code>dont_touch</code> argument.</p>
+<p>You can choose whether or not to tolerate warnings from reference function calls with the argument <code>tolerate_warnings</code>.</p>
+</div>
+<div id="future-development" class="section level2">
+<h2>Future Development</h2>
+<p>I would like to extend the framework to also support parallellization.</p>
+<p>That is it, I hope, that you will enjoy the <code>trimmer</code> package :)</p>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+
